@@ -233,6 +233,7 @@ object Dungeon {
                     val key = old?.gameProfile?.name ?: profile.name ?: continue
                     val idx = playerEntryNames[key] ?: -1
 
+
                     val msg = unformatted.trim()
                     if(msg == "") return@register
 
