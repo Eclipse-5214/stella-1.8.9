@@ -23,4 +23,4 @@ plugins {
 }
 
 
-rootProject.name = "stella-1.8.9"
+rootProject.name = "stella"
