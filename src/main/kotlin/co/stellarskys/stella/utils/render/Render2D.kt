@@ -12,9 +12,25 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
 import java.awt.Color
+import javax.imageio.ImageIO
 
 object Render2D {
     private val formattingRegex = "(?<!\\\\\\\\)&(?=[0-9a-fk-or])".toRegex()
+
+    private fun preDraw() {
+        GlStateManager.enableAlpha()
+        GlStateManager.enableBlend()
+        GlStateManager.disableDepth()
+        GlStateManager.disableLighting()
+        GlStateManager.disableTexture2D()
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
+    }
+
+    private fun postDraw() {
+        GlStateManager.disableBlend()
+        GlStateManager.enableDepth()
+        GlStateManager.enableTexture2D()
+    }
 
     fun drawTexture(
         ctx: DrawContext,
@@ -30,6 +46,9 @@ object Render2D {
         textureWidth: Int = 256,
         textureHeight: Int = 256
     ) {
+        preDraw()
+        GlStateManager.enableTexture2D()
+        GlStateManager.color(1f, 1f, 1f, 1f)
         mc.textureManager.bindTexture(image)
         Gui.drawScaledCustomSizeModalRect(
             x, y,
@@ -38,18 +57,33 @@ object Render2D {
             width, height,
             textureWidth.toFloat(), textureHeight.toFloat()
         )
+        postDraw()
     }
 
 
     fun drawImage(ctx: DrawContext, image: ResourceLocation, x: Int, y: Int, width: Int, height: Int) {
-        mc.textureManager.bindTexture(image)
+        val newImage = ResourceLocation(image.resourceDomain, "textures/gui/sprites/${image.resourcePath}.png")
+
+        preDraw()
+        GlStateManager.enableTexture2D()
+        GlStateManager.color(1f, 1f, 1f, 1f)
+
+        mc.textureManager.bindTexture(newImage)
+
+        val stream = mc.resourceManager.getResource(newImage).inputStream
+        val bufferedImage = ImageIO.read(stream)
+        val texWidth = bufferedImage.width
+        val texHeight = bufferedImage.height
+
         Gui.drawScaledCustomSizeModalRect(
             x, y,
             0f, 0f,
-            256, 256, // assuming full texture region
+            texWidth, texHeight, // assuming full texture region
             width, height,
-            256f, 256f
+            texWidth.toFloat(), texHeight.toFloat()
         )
+
+        postDraw()
     }
 
 

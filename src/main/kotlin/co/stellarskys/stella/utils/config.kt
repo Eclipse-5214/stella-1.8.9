@@ -2,7 +2,7 @@ package co.stellarskys.stella.utils
 
 import co.stellarskys.stella.utils.config.core.Config
 
-val config = Config("Stella", "stella") {
+val config = Config("Stella", "assets/stella") {
     category("General"){
         subcategory("info") {
             textparagraph {

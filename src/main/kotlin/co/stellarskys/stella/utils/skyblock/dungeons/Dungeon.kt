@@ -223,16 +223,15 @@ object Dungeon {
                     val name = entry.displayName
                     val profile = entry.profile
 
-                    if (name == null && profile == null){
-                        //println("[EB] entry has no name or profile: $entry")
-                        continue
-                    }
+                    if (name == null && profile == null) continue
 
-                    val formatted = name.formattedText ?: continue
+                    val formatted = name?.formattedText ?: continue
                     val unformatted = formatted.clearCodes()
 
-                    val old = (Stella.mc.netHandler!! as AccessorNetHandlerPlayClient).uuidToPlayerInfo[entry.profile.id]
-                    val idx = playerEntryNames[old?.gameProfile?.name ?: entry.profile?.name] ?: -1
+                    val uuid = profile?.id ?: continue
+                    val old = (Stella.mc.netHandler as? AccessorNetHandlerPlayClient)?.uuidToPlayerInfo?.get(uuid)
+                    val key = old?.gameProfile?.name ?: profile.name ?: continue
+                    val idx = playerEntryNames[key] ?: -1
 
                     val msg = unformatted.trim()
                     if(msg == "") return@register

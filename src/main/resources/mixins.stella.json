@@ -5,6 +5,6 @@
   "refmap": "mixins.stella.refmap.json",
   "client": [
     "accessors.AccessorNetHandlerPlayClient",
-    "MixinNetworkManager.java"
+    "MixinNetworkManager"
   ]
 }

@@ -3,15 +3,13 @@ package co.stellarskys.stella.utils
 import co.stellarskys.stella.Stella
 import co.stellarskys.stella.Stella.Companion.mc
 import co.stellarskys.stella.hud.HUDEditor
-import co.stellarskys.stella.utils.CommandUtils
-import co.stellarskys.stella.utils.TickUtils
 import co.stellarskys.stella.utils.skyblock.dungeons.DungeonScanner
 import net.minecraft.command.ICommandSender
 import net.minecraft.util.BlockPos
 
 @Stella.Command
 object MainCommand: CommandUtils(
-    "stella",
+    "assets/stella",
     "Opens the Config",
     listOf("sa", "sta")
 ) {
