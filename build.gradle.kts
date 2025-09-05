@@ -17,6 +17,8 @@ val version: String by project
 val mixinGroup = "$baseGroup.mixin"
 val modid: String by project
 val transformerFile = file("src/main/resources/accesstransformer.cfg")
+val elementaVersion = 710
+val ucVersion = 415
 
 // Toolchains:
 java {
@@ -72,6 +74,7 @@ sourceSets.main {
 repositories {
     mavenCentral()
     maven("https://repo.spongepowered.org/maven/")
+    maven("https://repo.essential.gg/repository/maven-public")
     // If you don't want to log in with your real minecraft account, remove this line
     maven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1")
 }
@@ -92,6 +95,13 @@ dependencies {
         isTransitive = false
     }
     annotationProcessor("org.spongepowered:mixin:0.8.5-SNAPSHOT")
+
+    shadowImpl("org.reflections:reflections:0.10.2")
+    shadowImpl("gg.essential:elementa:$elementaVersion")
+    shadowImpl("gg.essential:universalcraft-1.8.9-forge:$ucVersion")
+    shadowImpl("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2")
+    shadowImpl("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
+
 
     // If you don't want to log in with your real minecraft account, remove this line
     runtimeOnly("me.djtheredstoner:DevAuth-forge-legacy:1.2.1")
@@ -155,6 +165,8 @@ tasks.shadowJar {
 
     // If you want to include other dependencies and shadow them, you can relocate them in here
     fun relocate(name: String) = relocate(name, "$baseGroup.deps.$name")
+    relocate("gg.essential.elementa")
+    relocate("gg.essential.universal")
 }
 
 tasks.assemble.get().dependsOn(tasks.remapJar)
