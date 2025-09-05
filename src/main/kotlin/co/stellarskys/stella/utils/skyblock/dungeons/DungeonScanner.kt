@@ -311,10 +311,10 @@ object DungeonScanner {
         for (v in Dungeon.partyMembers) {
             val isAlreadyTracked = players.any { it.name == v }
 
-             val playerObj = world.playerEntities.firstOrNull { it.name == v }
              val entry = Stella.mc.netHandler?.getPlayerInfo(v)
              val ping = entry?.responseTime ?: -1
              val skinTexture = entry?.locationSkin ?: DefaultPlayerSkin.getDefaultSkinLegacy()
+
 
             if (isAlreadyTracked || ping == -1) continue
 
@@ -326,9 +326,12 @@ object DungeonScanner {
         for (v in players) {
             val p = world.playerEntities.firstOrNull { it.name == v.name }
             val hasHat = p?.isWearing(EnumPlayerModelParts.HAT) ?: v.hat
-            val ping = Stella.mc.netHandler?.getPlayerInfo(v.name)?.responseTime ?: -1
+            val entry = Stella.mc.netHandler?.getPlayerInfo(v.name)
+            val ping = entry?.responseTime ?: -1
+            val skinTexture = entry?.locationSkin ?: DefaultPlayerSkin.getDefaultSkinLegacy()
 
             v.hat = hasHat
+            v.skin = skinTexture
 
             if (ping != -1 && p != null) {
                 v.inRender = true

@@ -56,5 +56,12 @@ object dhdebug: CommandUtils(
 
             ChatUtils.addMessage("${Stella.PREFIX} §b$name §ftype is §b${room.type}§f, with a checkmark of §b${room.checkmark}§f, explored? ${room.explored}")
         }
+
+        DungeonScanner.players.forEach { player ->
+            println("${Stella.PREFIX} §fplayer §b${player.name} info")
+            println("§d| §fin render: §b${player.inRender}")
+            println("§d| §icon x: §b${player.iconX}§f, z: §b${player.iconZ}§f, rot: §b${player.rotation}")
+
+        }
     }
 }
