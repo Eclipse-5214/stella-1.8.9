@@ -18,6 +18,7 @@ object boxWitherDoors: Feature("boxWitherDoors", "catacombs") {
 
     val obtainKey = Regex("""^(?:\[[^]]+]\s)?(\w+) has obtained (Wither|Blood) Key!$""")
     val openedDoor = Regex("""^(\w+) opened a WITHER door!$""")
+    val openedDoorAlt = Regex("""A (Blood|Wither) Key was picked up!""")
     val bloodOpened = Regex("""^The BLOOD DOOR has been opened!$""")
 
     override fun initialize() {

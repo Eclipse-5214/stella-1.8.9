@@ -168,7 +168,7 @@ object Dungeon {
                     player.icon = "icon-$index"
                 }
 
-                self?.icon = "icon${alives.size}"
+                self?.icon = "icon-${alives.size}"
             }
         }
 
@@ -568,17 +568,19 @@ object Dungeon {
     }
 
      fun updatePlayersFromMap(state: MapData) {
-        val decor = state.mapDecorations
-        players.forEach { (name, player) ->
-            decor.entries.find { (icon, _) -> icon == player.icon }?.let { (_, decoration) ->
-                icons[player.icon] = Icon(
-                    x = decoration.mapX,
-                    y = decoration.mapZ,
-                    yaw = decoration.yaw + 180f,
-                    player = player.name
-                )
-            }
-        }
+         val decor = state.mapDecorations
+         players.forEach { (name, player) ->
+             decor.entries.find { (icon, _) -> icon == player.icon }?.let { (_, decoration) ->
+                 icons[player.icon] = Icon(
+                     x = decoration.mapX,
+                     y = decoration.mapZ,
+                     yaw = decoration.yaw + 180f,
+                     player = player.name
+                 )
+             }
+         }
+
+         DungeonScanner.updatePlayersFromMap()
      }
 
     fun checkBloodDone(state: MapData) {

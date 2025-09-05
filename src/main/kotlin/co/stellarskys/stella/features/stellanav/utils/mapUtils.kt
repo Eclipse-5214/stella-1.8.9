@@ -98,6 +98,7 @@ object BossMapRegistry {
     private val gson = Gson()
     private val bossMaps = mutableMapOf<String, List<BossMapData>>()
 
+
     init {
         val resourceManager = Stella.mc.resourceManager
         load(resourceManager)
@@ -116,7 +117,7 @@ object BossMapRegistry {
 
         val reader = InputStreamReader(resource.inputStream)
         val type = object : TypeToken<Map<String, List<BossMapData>>>() {}.type
-        val parsed = gson.fromJson<Map<String, List<BossMapData>>>(reader, type)
+        val parsed: Map<String, List<BossMapData>> = gson.fromJson(reader, type)
 
         bossMaps.putAll(parsed)
     }

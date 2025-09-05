@@ -1,25 +1,89 @@
 package co.stellarskys.stella.utils.CompatHelpers
 
+import co.stellarskys.stella.Stella
+import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.renderer.GlStateManager
+import org.lwjgl.opengl.GL11
 
-interface UMatrix {
-    fun pushMatrix()
-    fun popMatrix()
-    fun translate(x: Float, y: Float, z: Float)
-    fun rotate(angle: Float, x: Float, y: Float, z: Float)
-    fun scale(x: Float, y: Float, z: Float)
+data class TransformState(
+    var x: Float = 0f,
+    var y: Float = 0f,
+    var scaleX: Float = 1f,
+    var scaleY: Float = 1f
+)
+
+class TransformTracker {
+    private val stack = ArrayDeque<TransformState>().apply { addFirst(TransformState()) }
+
+    fun push() = stack.addFirst(stack.first().copy())
+    fun pop() = stack.removeFirst()
+    fun translate(dx: Float, dy: Float) {
+        val top = stack.first()
+        top.x += dx
+        top.y += dy
+    }
+    fun scale(sx: Float, sy: Float) {
+        val top = stack.first()
+        top.x *= sx
+        top.y *= sy
+        top.scaleX *= sx
+        top.scaleY *= sy
+    }
+    fun current(): TransformState = stack.first()
 }
 
-object matrix : UMatrix {
-    override fun pushMatrix() = GlStateManager.pushMatrix()
-    override fun popMatrix() = GlStateManager.popMatrix()
-    override fun translate(x: Float, y: Float, z: Float) = GlStateManager.translate(x, y, z)
-    override fun rotate(angle: Float, x: Float, y: Float, z: Float) {GlStateManager.rotate(angle, x, y, z)}
-    override fun scale(x: Float, y: Float, z: Float) = GlStateManager.scale(x, y, z)
+object UMatrix {
+    private val tracker = TransformTracker()
+
+    fun pushMatrix() {
+        GlStateManager.pushMatrix()
+        tracker.push()
+    }
+
+    fun popMatrix() {
+        GlStateManager.popMatrix()
+        tracker.pop()
+    }
+
+    fun translate(x: Float, y: Float, z: Float) {
+        GlStateManager.translate(x, y, z)
+        tracker.translate(x, y)
+    }
+
+    fun scale(x: Float, y: Float, z: Float) {
+        GlStateManager.scale(x, y, z)
+        tracker.scale(x, y)
+    }
+
+    fun rotate(angle: Float, x: Float, y: Float, z: Float) {
+        GlStateManager.rotate(angle, x, y, z)
+        // Rotation not tracked yet
+    }
+
+    fun currentTransform(): TransformState = tracker.current()
 }
 
 class DrawContext {
-    val matrices: UMatrix = matrix
+    val matrices = UMatrix
+
+    fun enableScissor(x: Int, y: Int, width: Int, height: Int) {
+        val scaleFactor = ScaledResolution(Stella.mc).scaleFactor
+        val transform = matrices.currentTransform()
+
+        val tx = ((x + transform.x) * transform.scaleX).toInt()
+        val ty = ((y + transform.y) * transform.scaleY).toInt()
+        val tw = (width * transform.scaleX).toInt()
+        val th = (height * transform.scaleY).toInt()
+
+        val glY = Stella.mc.displayHeight - (ty + th)
+
+        GL11.glEnable(GL11.GL_SCISSOR_TEST)
+        GL11.glScissor(tx * scaleFactor, glY * scaleFactor, tw * scaleFactor, th * scaleFactor)
+    }
+
+    fun disableScissor() {
+        GL11.glDisable(GL11.GL_SCISSOR_TEST)
+    }
 }
 
 typealias UDrawContext = DrawContext

@@ -58,10 +58,9 @@ object dhdebug: CommandUtils(
         }
 
         DungeonScanner.players.forEach { player ->
-            println("${Stella.PREFIX} §fplayer §b${player.name} info")
-            println("§d| §fin render: §b${player.inRender}")
-            println("§d| §icon x: §b${player.iconX}§f, z: §b${player.iconZ}§f, rot: §b${player.rotation}")
-
+            ChatUtils.addMessage("${Stella.PREFIX} §fplayer §b${player.name} info")
+            ChatUtils.addMessage("§d| §fin render: §b${player.inRender}")
+            ChatUtils.addMessage("§d| §icon x: §b${player.iconX}§f, z: §b${player.iconZ}§f, rot: §b${player.rotation}")
         }
     }
 }

@@ -26,7 +26,7 @@ object mapRender {
             if (mapConfig.mapBorder) renderMapBorder(context)
         } else if (!Dungeon.complete && mapConfig.bossMapEnabled) {
             renderMapBackground(context)
-            //boss.renderMap(context)
+            boss.renderMap(context)
 
             if (mapInfoUnder) renderInfoUnder(context, false)
             if (mapConfig.mapBorder) renderMapBorder(context)
