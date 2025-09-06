@@ -319,6 +319,16 @@ object clear{
 
             val matrix = context.matrices
 
+            val ownName = mapConfig.dontShowOwn && v.name == you.name
+            if (Dungeon.holdingLeaps && mapConfig.showNames && !ownName) {
+                matrix.pushMatrix()
+                matrix.translate(x.toFloat(), y.toFloat(), 1f)
+
+                val scale = mapConfig.iconScale / 1.3f
+                renderNametag(context, v.name, scale)
+                matrix.popMatrix()
+            }
+
             matrix.pushMatrix()
             matrix.translate(x.toFloat(), y.toFloat(), 1f)
             matrix.rotate(rotation, 0f, 0f, 1f)

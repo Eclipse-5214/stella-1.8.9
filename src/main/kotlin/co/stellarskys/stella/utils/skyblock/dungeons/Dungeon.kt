@@ -129,8 +129,8 @@ object Dungeon {
     var currentClass: String? = null
     var currentLevel: Int = 0
     var puzzlesDone: Int = 0
-    var clearedPercent: Int = 0
-    var secretsPercentNeeded: Double = 1.0
+    var holdingLeaps: Boolean = false
+
 
     // score
     var scoreData = ScoreData()
@@ -139,6 +139,8 @@ object Dungeon {
     var dungeonSeconds: Int = 0
     var hasSpiritPet: Boolean = false
     var mimicDead: Boolean = false
+    var clearedPercent: Int = 0
+    var secretsPercentNeeded: Double = 1.0
     var has270Triggered: Boolean = false
     var has300Triggered: Boolean = false
     var hasPaul = false
@@ -323,6 +325,12 @@ object Dungeon {
 
             mapLine1 = "$dSecrets    $dCrypts    $dMimic".trim()
             mapLine2 = "$minSecrets    $dDeaths    $dScore".trim()
+
+            val player = Stella.mc.thePlayer ?: return@register
+            val heldItem = player.heldItem ?: return@register
+            val displayName = heldItem.displayName?.clearCodes() ?: return@register
+
+            holdingLeaps = "leap" in displayName.lowercase()
         })
 
         EventBus.register<ChatEvent.Receive>( { event ->

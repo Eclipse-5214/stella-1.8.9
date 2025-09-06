@@ -79,14 +79,24 @@ object boss {
             val you = Stella.mc.thePlayer ?: continue
             if (v.isDead && v.name != you.name.string) continue
 
-            val iconX = player.iconX ?: continue
-            val iconY = player.iconZ ?: continue
+            val realX = player.realX ?: continue
+            val realY = player.realZ ?: continue
             val rotation = player.rotation ?: continue
 
-            val x = (iconX / 125.0 * 128.0)
-            val y = (iconY / 125.0 * 128.0)
+            val x = ((realX - bossMap.topLeftLocation[0]) / sizeInWorld) * size - topLeftHudLocX
+            val y = ((realY - bossMap.topLeftLocation[1]) / sizeInWorld) * size - topLeftHudLocZ
 
             val matrix = context.matrices
+
+            val ownName = mapConfig.dontShowOwn && v.name == you.name
+            if (Dungeon.holdingLeaps && mapConfig.showNames && !ownName) {
+                matrix.pushMatrix()
+                matrix.translate(x.toFloat(), y.toFloat(), 1f)
+
+                val scale = mapConfig.iconScale / 1.3f
+                renderNametag(context, v.name, scale)
+                matrix.popMatrix()
+            }
 
             matrix.pushMatrix()
             matrix.translate(x.toFloat(), y.toFloat(), 1f)

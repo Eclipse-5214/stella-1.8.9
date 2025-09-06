@@ -1,6 +1,9 @@
 package co.stellarskys.stella.features.stellanav.utils
 
 import co.stellarskys.stella.Stella
+import co.stellarskys.stella.utils.CompatHelpers.UDrawContext
+import co.stellarskys.stella.utils.render.Render2D
+import co.stellarskys.stella.utils.render.Render2D.width
 import co.stellarskys.stella.utils.skyblock.dungeons.Checkmark
 import co.stellarskys.stella.utils.skyblock.dungeons.DoorType
 import co.stellarskys.stella.utils.skyblock.dungeons.RoomType
@@ -155,4 +158,31 @@ object BossMapRegistry {
     }
 
     fun getAll(): Map<String, List<BossMapData>> = bossMaps
+}
+
+fun renderNametag(context: UDrawContext, name: String, scale: Float) {
+    val matrix = context.matrices
+    val width = name.width().toFloat()
+    val drawX = (-width / 2).toInt()
+    val drawY = 0
+
+    val offsets = listOf(
+        scale to 0f, -scale to 0f,
+        0f to scale, 0f to -scale
+    )
+
+    matrix.pushMatrix()
+    matrix.scale(scale, scale, 1f)
+    matrix.translate(0f, 12f, 0f)
+
+    for ((dx, dy) in offsets) {
+        matrix.pushMatrix()
+        matrix.translate(dx, dy, 0f)
+        Render2D.drawString(context, "§0$name", drawX, drawY)
+        matrix.popMatrix()
+    }
+
+
+    Render2D.drawString(context, name, drawX, drawY)
+    matrix.popMatrix()
 }

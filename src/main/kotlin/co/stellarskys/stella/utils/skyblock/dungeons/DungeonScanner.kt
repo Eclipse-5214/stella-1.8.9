@@ -358,6 +358,13 @@ object DungeonScanner {
             v.lastRoomCheck = System.currentTimeMillis()
             v.lastRoom = currRoom
         }
+
+        val selfName = Stella.mc.thePlayer?.name ?: return
+        val self = players.find { it.name == selfName }
+        if (self != null) {
+            players.remove(self)
+            players.add(self)
+        }
     }
 
     fun getExploredRooms(): List<Room> {
