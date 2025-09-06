@@ -25,6 +25,9 @@ class DungeonPlayer(val name: String) {
     )
 
     var deaths: Int = 0
+    var minRooms: Int = 0
+    var maxRooms: Int = 0
+    var secrets: Int = 0
 
     var lastRoomCheck: Long? = null
     var lastRoom: Room? = null
@@ -35,8 +38,6 @@ class DungeonPlayer(val name: String) {
 
     fun getWhiteChecks(): MutableMap<String, DungeonScanner.RoomClearInfo> =
         clearedRooms["WHITE"] ?: mutableMapOf()
-
-
 
     override fun toString(): String {
         return "DungeonPlayer[iconX: $iconX, iconZ: $iconZ, rotation: $rotation, realX: $realX, realZ: $realZ, currentRoom: $currentRoom]"

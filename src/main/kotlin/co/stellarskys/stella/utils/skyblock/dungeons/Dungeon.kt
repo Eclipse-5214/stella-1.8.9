@@ -372,6 +372,8 @@ object Dungeon {
                 bloodOpen = true
                 return@register
             }
+
+
         })
 
         EventBus.register<AreaEvent.Main> ({

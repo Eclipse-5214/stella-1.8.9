@@ -301,6 +301,12 @@ object DungeonScanner {
                     solo = players.size == 1
                 )
             )
+
+            if (players.size == 1) {
+                v.minRooms ++
+            }
+
+            v.maxRooms ++
         }
     }
 
