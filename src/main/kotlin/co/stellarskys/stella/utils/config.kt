@@ -217,6 +217,20 @@ val config = Config("Stella", "assets/stella") {
                 description = "Use the color for the players class for the icon border"
                 default = false
             }
+
+            toggle {
+                configName = "showNames"
+                name = "Show Player Names"
+                description = "Render player names under map icons"
+            }
+
+            toggle {
+                configName = "dontShowOwn"
+                name = "Hide Own Name"
+                description = "Hides your name on the map"
+                shouldShow { settings -> settings["showNames"] as Boolean }
+            }
+
         }
 
         subcategory("Room Colors") {
@@ -324,8 +338,8 @@ val config = Config("Stella", "assets/stella") {
 
             toggle {
                 configName = "dungeonBreakdown"
-                name = "Box Wither Doors"
-                description = "Renders a box around wither doors"
+                name = "Dungeon Breakdown"
+                description = "Sends dungeon info after run"
                 default = false
             }
         }

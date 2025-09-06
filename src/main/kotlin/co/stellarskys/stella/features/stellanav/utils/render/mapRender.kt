@@ -32,7 +32,7 @@ object mapRender {
             if (mapConfig.mapBorder) renderMapBorder(context)
         } else if (Dungeon.complete && mapConfig.scoreMapEnabled) {
             renderMapBackground(context)
-            //score.render(context)
+            score.render(context)
 
             if (mapInfoUnder) renderInfoUnder(context, false)
             if (mapConfig.mapBorder) renderMapBorder(context)

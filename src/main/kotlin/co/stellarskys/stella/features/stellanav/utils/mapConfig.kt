@@ -46,8 +46,8 @@ object mapConfig {
     val iconBorderWidth: Float get() = config["iconBorderWidth"] as? Float ?: 0.2f
     val iconBorderColor: Color get() = config["iconBorderColor"] as? Color ?: Color(0, 0, 0, 255)
     val iconClassColors: Boolean get() = config["iconClassColors"] as? Boolean ?: false
-    val showNames: Boolean get() = true
-    val dontShowOwn: Boolean get() = true
+    val showNames: Boolean get() = config["showNames"] as? Boolean ?: false
+    val dontShowOwn: Boolean get() = config["dontShowOwn"] as? Boolean ?: false
 
     // other colors
     val mapBgColor: Color get() = config["mapBgColor"] as? Color ?: Color(0, 0, 0, 100)
