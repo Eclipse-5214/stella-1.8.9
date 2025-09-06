@@ -117,7 +117,21 @@ object BossMapRegistry {
 
         val reader = InputStreamReader(resource.inputStream)
         val type = object : TypeToken<Map<String, List<BossMapData>>>() {}.type
-        val parsed: Map<String, List<BossMapData>> = gson.fromJson(reader, type)
+        val rawType = object : TypeToken<Map<String, List<Map<String, Any>>>>() {}.type
+        val rawParsed: Map<String, List<Map<String, Any>>> = gson.fromJson(reader, rawType)
+
+        val parsed = rawParsed.mapValues { (_, list) ->
+            list.map { map ->
+                BossMapData(
+                    image = map["image"] as String,
+                    bounds = (map["bounds"] as List<List<Double>>),
+                    widthInWorld = (map["widthInWorld"] as Double).toInt(),
+                    heightInWorld = (map["heightInWorld"] as Double).toInt(),
+                    topLeftLocation = (map["topLeftLocation"] as List<Double>).map { it.toInt() },
+                    renderSize = (map["renderSize"] as? Double)?.toInt()
+                )
+            }
+        }
 
         bossMaps.putAll(parsed)
     }
@@ -136,6 +150,8 @@ object BossMapRegistry {
                 p in min..max
             }
         }
+
+
     }
 
     fun getAll(): Map<String, List<BossMapData>> = bossMaps

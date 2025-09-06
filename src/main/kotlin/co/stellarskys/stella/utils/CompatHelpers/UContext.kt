@@ -67,18 +67,26 @@ class DrawContext {
     val matrices = UMatrix
 
     fun enableScissor(x: Int, y: Int, width: Int, height: Int) {
-        val scaleFactor = ScaledResolution(Stella.mc).scaleFactor
+        val mc = Stella.mc
+        val scaled = ScaledResolution(mc)
+        val scaleFactor = scaled.scaleFactor
+
         val transform = matrices.currentTransform()
 
+        // Apply matrix transform
         val tx = ((x + transform.x) * transform.scaleX).toInt()
         val ty = ((y + transform.y) * transform.scaleY).toInt()
         val tw = (width * transform.scaleX).toInt()
         val th = (height * transform.scaleY).toInt()
 
-        val glY = Stella.mc.displayHeight - (ty + th)
+        // Flip Y for OpenGL's bottom-left origin
+        val glY = (scaled.scaledHeight - ty - th) * scaleFactor
+        val glX = tx * scaleFactor
+        val glW = tw * scaleFactor
+        val glH = th * scaleFactor
 
         GL11.glEnable(GL11.GL_SCISSOR_TEST)
-        GL11.glScissor(tx * scaleFactor, glY * scaleFactor, tw * scaleFactor, th * scaleFactor)
+        GL11.glScissor(glX, glY, glW, glH)
     }
 
     fun disableScissor() {
