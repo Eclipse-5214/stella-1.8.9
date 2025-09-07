@@ -84,7 +84,8 @@ object Dungeon {
         "DungeonTime" to Regex("""^Time: (?:(\d+)h)?\s?(?:(\d+)m)?\s?(?:(\d+)s)?$"""),
         "Mimic" to Regex("""^Party > (?:\[[\w+]+] )?\w{1,16}: (.*)$"""),
         "DungeonComplete" to Regex("""^\s*(Master Mode)?\s?(?:The)? Catacombs - (Entrance|Floor .{1,3})$"""),
-        "WatcherDone" to Regex("""\[BOSS] The Watcher: That will be enough for now\.""")
+        "WatcherDone" to Regex("""\[BOSS] The Watcher: That will be enough for now\."""),
+        "PlayerDeath" to Regex("☠ (.*?) .*? and became a ghost")
     )
 
     private val playerEntryNames = mapOf("!A-b" to 1, "!A-f" to 5,"!A-j" to 9,"!A-n" to 13,"!A-r" to 17)
@@ -320,7 +321,7 @@ object Dungeon {
             val dCrypts = "§7Crypts: " + when {crypts >= 5 -> "§a${crypts}"; crypts > 0 -> "§e${crypts}"; else -> "§c0" }
             val dMimic = if (floorNumber in listOf(6, 7)) { "§7Mimic: " + if (mimicDead) "§a✔" else "§c✘" } else { "" }
             val minSecrets = "§7Min Secrets: " + if (secretsFound == 0) { "§b?" } else if (scoreData.minSecrets > secretsFound) { "§e${scoreData.minSecrets}" } else { "§a${scoreData.minSecrets}" }
-            val dDeaths = "§7Deaths: " + if (teamDeaths < 0) { "§c${teamDeaths}" } else { "§a0" }
+            val dDeaths = "§7Deaths: " + if (teamDeaths > 0) { "§c${teamDeaths}" } else { "§a0" }
             val dScore = "§7Score: " + when {scoreData.score >= 300 -> "§a${scoreData.score}"; scoreData.score >= 270 -> "§e${scoreData.score}"; else -> "§c${scoreData.score}" } + if (hasPaul) " §b★" else ""
 
             mapLine1 = "$dSecrets    $dCrypts    $dMimic".trim()
@@ -363,6 +364,13 @@ object Dungeon {
 
             if (compleateMatch != null) {
                 complete = true
+
+                DungeonScanner.players.forEach { player ->
+                    val uuid = player.uuid ?: return@forEach
+                    HypixelApi.fetchSecrets(uuid, cacheMs = 0) { secrets ->
+                        player.currSecrets = secrets
+                    }
+                }
                 return@register
             }
 
@@ -370,6 +378,14 @@ object Dungeon {
 
             if (watcherMatch != null) {
                 bloodOpen = true
+                return@register
+            }
+
+            val deathMatch = regexes["PlayerDeath"]!!.find(msg)
+
+            if (deathMatch != null) {
+                val name = deathMatch.groups[1]?.value ?: return@register
+                DungeonScanner.players.find { it.name == name}?.apply { deaths ++ }
                 return@register
             }
 

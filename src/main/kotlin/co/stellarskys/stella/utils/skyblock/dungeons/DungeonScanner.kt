@@ -10,6 +10,7 @@ import co.stellarskys.stella.utils.TickUtils
 import co.stellarskys.stella.utils.WorldUtils
 import co.stellarskys.stella.utils.skyblock.LocationUtils
 import co.stellarskys.stella.utils.CompatHelpers.*
+import co.stellarskys.stella.utils.skyblock.HypixelApi
 import net.minecraft.client.entity.AbstractClientPlayer
 import net.minecraft.entity.player.EnumPlayerModelParts
 import net.minecraft.client.resources.DefaultPlayerSkin
@@ -66,7 +67,6 @@ object DungeonScanner {
 
             if (prevRoom?.name != currRoom?.name) {
                 // _roomEnterListener.forEach { it(currRoom) }
-                println("Entered Room! ${currentRoom?.name}")
             }
 
             lastIdx = idx
@@ -90,14 +90,11 @@ object DungeonScanner {
     )
 
     fun init() {
-        println("[Dungeon Scanner] Initilizing")
         EventBus.register<AreaEvent.Main> ({
             TickUtils.schedule(2) {
                 if (LocationUtils.area != "catacombs") {
-                    println("resetting")
                     reset()
                 }
-                println("reregistering")
                 tickRegister.register()
             }
         })
@@ -286,12 +283,19 @@ object DungeonScanner {
     fun roomCleared(room: Room, check: Checkmark) {
         val players = room.players
         val isGreen = check == Checkmark.GREEN
+        val roomKey = room.name ?: "unknown"
 
-        players.forEach {
-            val v = it
+        players.forEach { player ->
+            val alreadyCleared = player.getWhiteChecks().containsKey(roomKey) || player.getGreenChecks().containsKey(roomKey)
+
+            if (!alreadyCleared) {
+                if (players.size == 1) player.minRooms++
+                player.maxRooms++
+            }
+
 
             val colorKey = if (isGreen) "GREEN" else "WHITE"
-            val clearedMap = v.clearedRooms[colorKey]
+            val clearedMap = player.clearedRooms[colorKey]
 
             clearedMap?.putIfAbsent(
                 room.name ?: "unknown",
@@ -301,12 +305,6 @@ object DungeonScanner {
                     solo = players.size == 1
                 )
             )
-
-            if (players.size == 1) {
-                v.minRooms ++
-            }
-
-            v.maxRooms ++
         }
     }
 
@@ -317,14 +315,17 @@ object DungeonScanner {
         for (v in Dungeon.partyMembers) {
             val isAlreadyTracked = players.any { it.name == v }
 
-             val entry = Stella.mc.netHandler?.getPlayerInfo(v)
-             val ping = entry?.responseTime ?: -1
-             val skinTexture = entry?.locationSkin ?: DefaultPlayerSkin.getDefaultSkinLegacy()
-
+            val entry = Stella.mc.netHandler?.getPlayerInfo(v)
+            val ping = entry?.responseTime ?: -1
+            val skinTexture = entry?.locationSkin ?: DefaultPlayerSkin.getDefaultSkinLegacy()
+            val uuid = entry?.gameProfile?.id?.toString()
 
             if (isAlreadyTracked || ping == -1) continue
 
-            players.add(DungeonPlayer(v).apply { skin = skinTexture })
+            players.add(DungeonPlayer(v).apply {
+                skin = skinTexture
+                this.uuid = uuid
+            })
         }
 
         if (players.size != Dungeon.partyMembers.size) return
@@ -335,6 +336,18 @@ object DungeonScanner {
             val entry = Stella.mc.netHandler?.getPlayerInfo(v.name)
             val ping = entry?.responseTime ?: -1
             val skinTexture = entry?.locationSkin ?: DefaultPlayerSkin.getDefaultSkinLegacy()
+            val uuid = entry?.gameProfile?.id?.toString()
+
+            if (uuid != null) {
+                v.uuid = uuid
+
+                if (v.initSecrets == null) {
+                    HypixelApi.fetchSecrets(uuid, cacheMs = 120_000) { secrets ->
+                        v.initSecrets = secrets
+                        v.currSecrets = secrets
+                    }
+                }
+            }
 
             v.hat = hasHat
             v.skin = skinTexture
@@ -421,7 +434,6 @@ object DungeonScanner {
 
                             // Only scan odd coordinates (door space)
                             if (doorCx % 2 == 0 && doorCz % 2 == 0) {
-                                println("Not odd")
                                 continue
                             }
 
@@ -456,10 +468,8 @@ object DungeonScanner {
                             if (neighborRoom == null) {
                                 newRoom.addComponent(neighborComp)
                                 rooms[neighborIdx] = newRoom
-                                println("Room at $rmx/$rmz is taking over comp at ${neighborComp.first}/${neighborComp.second}")
                             } else if (neighborRoom != newRoom && neighborRoom.type != RoomType.ENTRANCE) {
                                 mergeRooms(neighborRoom, newRoom)
-                                println("Merged room at $rmx/$rmz with neighbor at ${neighborComp.first}/${neighborComp.second}")
                             }
                         }
                     }

@@ -13,6 +13,7 @@ class DungeonPlayer(val name: String) {
     var realZ: Double? = null
     var currentRoom: Room? = null
     var skin: ResourceLocation = DefaultPlayerSkin.getDefaultSkinLegacy()
+    var uuid: String? = null
 
     var hat: Boolean = false
 
@@ -27,7 +28,10 @@ class DungeonPlayer(val name: String) {
     var deaths: Int = 0
     var minRooms: Int = 0
     var maxRooms: Int = 0
-    var secrets: Int = 0
+    var initSecrets: Int? = null
+    var currSecrets: Int? = null
+    val secrets: Int get() = (currSecrets ?: 0) - (initSecrets ?: 0)
+
 
     var lastRoomCheck: Long? = null
     var lastRoom: Room? = null

@@ -46,7 +46,6 @@ open class Feature(
     }
 
     private val configValue: () -> Boolean = {
-        println("getting config value")
         configName?.let { config.getValue<Boolean>(it) } ?: true
     }
 
@@ -81,18 +80,14 @@ open class Feature(
     open fun onToggle(state: Boolean) {
         if (state == isRegistered) return
 
-        println("[Feature] Feature $configName updating")
-
         if (state) {
             events.forEach { it.register() }
             onRegister()
             isRegistered = true
-            println("[Feature] Enabled")
         } else {
             events.forEach { it.unregister() }
             onUnregister()
             isRegistered = false
-            println("[Feature] Disabled")
         }
     }
 

@@ -10,7 +10,6 @@ import co.stellarskys.stella.utils.TickUtils
 import co.stellarskys.stella.utils.clearCodes
 import co.stellarskys.stella.utils.skyblock.dungeons.DungeonPlayer
 import co.stellarskys.stella.utils.skyblock.dungeons.DungeonScanner
-import kotlin.math.min
 
 @Stella.Module
 object dungeonBreakdown: Feature("dungeonBreakdown", "catacombs") {
@@ -58,7 +57,7 @@ object dungeonBreakdown: Feature("dungeonBreakdown", "catacombs") {
                 ", Stacked with $others"
             }
 
-            return "§$color$name ($type) [§$checkColor✔§$color] in $time$stackStr\n"
+            return "§$color$name ($type) [§$checkColor✔§$color] in ${time}s$stackStr\n"
         }
 
         for ((_, info) in greenRooms) {

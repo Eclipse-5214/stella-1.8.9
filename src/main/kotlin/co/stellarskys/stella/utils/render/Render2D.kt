@@ -127,11 +127,4 @@ object Render2D {
         val lineCount = count { it == '\n' } + 1
         return mc.fontRendererObj.FONT_HEIGHT * lineCount
     }
-
-    fun ensureTextureLoaded(textureManager: TextureManager, location: ResourceLocation) {
-        if (textureManager.getTexture(location) == null) {
-            println("🔄 Loading texture: $location")
-            textureManager.loadTexture(location, SimpleTexture(location))
-        }
-    }
 }

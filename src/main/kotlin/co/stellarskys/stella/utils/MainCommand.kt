@@ -11,7 +11,7 @@ import net.minecraft.util.BlockPos
 object MainCommand: CommandUtils(
     "assets/stella",
     "Opens the Config",
-    listOf("sa", "sta")
+    listOf("sa", "stta")
 ) {
     override fun processCommand(sender: ICommandSender?, args: Array<out String?>?) {
         if (args != null && args.isNotEmpty()) {
@@ -33,34 +33,5 @@ object MainCommand: CommandUtils(
     override fun getTabCompletions(sender: ICommandSender, args: Array<String>, pos: BlockPos): List<String> {
         if (args.size == 1) return listOf("hud").filter { it.startsWith(args[0].lowercase()) }
         return emptyList()
-    }
-}
-
-@Stella.Command
-object dhdebug: CommandUtils(
-    "sadb",
-    "Opens the Config"
-) {
-    override fun processCommand(sender: ICommandSender?, args: Array<out String?>?) {
-        val room = DungeonScanner.currentRoom ?: return
-        val name = room.name ?: "Unnamed"
-        val cores = room.cores
-
-        if (cores.isEmpty()) {
-            ChatUtils.addMessage("${Stella.PREFIX} §b$name §fhas no scanned cores!")
-        } else {
-            ChatUtils.addMessage("${Stella.PREFIX} §b$name §fcore hash${if (cores.size > 1) "es" else ""}:")
-            cores.forEach {
-                ChatUtils.addMessage(" - $it")
-            }
-
-            ChatUtils.addMessage("${Stella.PREFIX} §b$name §ftype is §b${room.type}§f, with a checkmark of §b${room.checkmark}§f, explored? ${room.explored}")
-        }
-
-        DungeonScanner.players.forEach { player ->
-            ChatUtils.addMessage("${Stella.PREFIX} §fplayer §b${player.name} info")
-            ChatUtils.addMessage("§d| §fin render: §b${player.inRender}")
-            ChatUtils.addMessage("§d| §icon x: §b${player.iconX}§f, z: §b${player.iconZ}§f, rot: §b${player.rotation}")
-        }
     }
 }

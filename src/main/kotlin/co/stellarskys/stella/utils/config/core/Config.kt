@@ -116,14 +116,6 @@ class Config(
                     .setColor(Color.black)
                     .setChildOf(window)
 
-                val title = UIText(fileName, false)
-                    .constrain {
-                        x = CenterConstraint() - 237.pixels()
-                        y = CenterConstraint() - 160.pixels()
-                    }
-                    .setTextScale(1.5f.pixels())
-                    .setChildOf(window)
-
                 head
                     .constrain {
                     x = CenterConstraint() - 235.pixels()
@@ -478,7 +470,6 @@ class Config(
     internal fun notifyListeners(configName: String, newValue: Any?) {
         listeners.forEach { it(configName, newValue) }
         updateConfig()
-        println("visibility update called")
     }
 
     private fun updateConfig() {
@@ -583,7 +574,6 @@ class Config(
     }
 
     fun save() {
-        println("[Stella] Saving")
         try {
             val target = resolvedFile
             target.parentFile?.mkdirs()
@@ -597,7 +587,6 @@ class Config(
             println("Failed to save config for '$mod': ${e.message}")
             e.printStackTrace()
         }
-        println("[Stella] Saved")
     }
 
     fun load() {
