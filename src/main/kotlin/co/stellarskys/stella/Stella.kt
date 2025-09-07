@@ -40,7 +40,7 @@ class Stella {
             if (event.entity == mc.thePlayer) {
                 ChatUtils.addMessage(
                     "$PREFIX §fMod loaded.",
-                    "§c${FeatureLoader.getFeatCount()} modules §8- §c${FeatureLoader.getLoadtime()}ms §8- §c${FeatureLoader.getCommandCount()} commands"
+                    "§b${FeatureLoader.getFeatCount()} §dmodules §8- §b${FeatureLoader.getLoadtime()}ms §8- §b${FeatureLoader.getCommandCount()} §dcommands"
                 )
                 eventCall?.unregister()
                 eventCall = null
