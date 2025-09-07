@@ -186,3 +186,27 @@ fun renderNametag(context: UDrawContext, name: String, scale: Float) {
     Render2D.drawString(context, name, drawX, drawY)
     matrix.popMatrix()
 }
+
+fun typeToColor(type: RoomType): String = when (type) {
+    RoomType.NORMAL   -> "7"
+    RoomType.PUZZLE   -> "d"
+    RoomType.TRAP     -> "6"
+    RoomType.YELLOW   -> "e"
+    RoomType.BLOOD    -> "c"
+    RoomType.FAIRY    -> "d"
+    RoomType.RARE     -> "b"
+    RoomType.ENTRANCE -> "a"
+    RoomType.UNKNOWN  -> "f"
+}
+
+fun typeToName(type: RoomType): String = when (type) {
+    RoomType.NORMAL   -> "Normal"
+    RoomType.PUZZLE   -> "Puzzle"
+    RoomType.TRAP     -> "Trap"
+    RoomType.YELLOW   -> "Yellow"
+    RoomType.BLOOD    -> "Blood"
+    RoomType.FAIRY    -> "Fairy"
+    RoomType.RARE     -> "Rare"
+    RoomType.ENTRANCE -> "Entrance"
+    RoomType.UNKNOWN  -> "Unknown"
+}
