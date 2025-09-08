@@ -88,7 +88,7 @@ class Stella {
         val mc = Minecraft.getMinecraft()
         val NAMESPACE: String = "stella"
         val INSTANCE: Stella? = null
-        val PREFIX: String = "§d[Stella]"
+        val PREFIX: String = "§b[§dStella§b]"
         val SHORTPREFIX: String = "§d[SA]"
 
         var isInInventory = false

@@ -4,6 +4,7 @@ import co.stellarskys.stella.Stella
 import co.stellarskys.stella.events.AreaEvent
 import co.stellarskys.stella.events.EventBus
 import co.stellarskys.stella.events.TickEvent
+import co.stellarskys.stella.events.WorldEvent
 import co.stellarskys.stella.utils.ChatUtils
 import co.stellarskys.stella.utils.CommandUtils
 import co.stellarskys.stella.utils.TickUtils
@@ -90,14 +91,17 @@ object DungeonScanner {
     )
 
     fun init() {
-        EventBus.register<AreaEvent.Main> ({
+        EventBus.register<AreaEvent.Main> {
             TickUtils.schedule(2) {
                 if (LocationUtils.area != "catacombs") {
                     reset()
                 }
                 tickRegister.register()
             }
-        })
+        }
+
+
+        EventBus.register<WorldEvent.Unload> { reset() }
     }
 
     fun onPlayerMove(entity: DungeonPlayer?, x: Double, z: Double, yaw: Float) {

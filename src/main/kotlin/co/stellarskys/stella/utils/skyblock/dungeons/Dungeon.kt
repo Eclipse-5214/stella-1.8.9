@@ -8,17 +8,14 @@ import co.stellarskys.stella.utils.clearCodes
 import co.stellarskys.stella.utils.skyblock.HypixelApi
 import co.stellarskys.stella.utils.skyblock.LocationUtils
 import co.stellarskys.stella.utils.skyblock.dungeons.DungeonScanner.currentRoom
-import kotlin.jvm.optionals.getOrNull
 import kotlin.math.ceil
 import kotlin.math.floor
-
-
- import co.stellarskys.stella.utils.CompatHelpers.*
- import net.minecraft.network.play.server.*
- import net.minecraft.world.storage.MapData
- import net.minecraft.entity.monster.EntityZombie
- import net.minecraft.item.ItemMap
- import net.minecraft.util.Vec4b
+import co.stellarskys.stella.utils.CompatHelpers.*
+import net.minecraft.network.play.server.*
+import net.minecraft.world.storage.MapData
+import net.minecraft.entity.monster.EntityZombie
+import net.minecraft.item.ItemMap
+import net.minecraft.util.Vec4b
 
 
 val puzzleEnums = mapOf(
@@ -407,6 +404,8 @@ object Dungeon {
                 error.printStackTrace()
             }
         )
+
+        EventBus.register<WorldEvent.Unload> { reset() }
     }
 
     fun reset() {
@@ -437,6 +436,7 @@ object Dungeon {
         secretsPercentNeeded = 1.0
         scoreData = ScoreData()
         bloodDone = false
+        bloodOpen = false
         dungeonSeconds = 0
         hasSpiritPet = false
         mimicDead = false

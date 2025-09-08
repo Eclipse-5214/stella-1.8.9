@@ -3,6 +3,7 @@ package co.stellarskys.stella.features.stellanav
 import co.stellarskys.stella.Stella
 import co.stellarskys.stella.events.ChatEvent
 import co.stellarskys.stella.events.RenderEvent
+import co.stellarskys.stella.events.WorldEvent
 import co.stellarskys.stella.features.Feature
 import co.stellarskys.stella.features.stellanav.utils.mapConfig
 import co.stellarskys.stella.utils.render.Render3D
@@ -18,7 +19,7 @@ object boxWitherDoors: Feature("boxWitherDoors", "catacombs") {
 
     val obtainKey = Regex("""^(?:\[[^]]+]\s)?(\w+) has obtained (Wither|Blood) Key!$""")
     val openedDoor = Regex("""^(\w+) opened a WITHER door!$""")
-    val openedDoorAlt = Regex("""A (Blood|Wither) Key was picked up!""")
+    val obtainKeyAlt = Regex("""A (Blood|Wither) Key was picked up!""")
     val bloodOpened = Regex("""^The BLOOD DOOR has been opened!$""")
 
     override fun initialize() {
@@ -27,6 +28,12 @@ object boxWitherDoors: Feature("boxWitherDoors", "catacombs") {
 
             val keyMatch = obtainKey.find(msg)
             if (keyMatch != null){
+                keyObtained = true
+                return@register
+            }
+
+            val keyMatchAlt = obtainKeyAlt.find(msg)
+            if (keyMatchAlt != null){
                 keyObtained = true
                 return@register
             }
@@ -64,6 +71,11 @@ object boxWitherDoors: Feature("boxWitherDoors", "catacombs") {
                     color, true, mapConfig.doorLW
                 )
             }
+        }
+
+        register<WorldEvent.Unload> {
+            bloodOpen = false
+            keyObtained = false
         }
     }
 
