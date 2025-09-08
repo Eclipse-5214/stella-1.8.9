@@ -10,6 +10,7 @@ import co.stellarskys.stella.utils.render.Render2D.width
 import co.stellarskys.stella.utils.skyblock.dungeons.*
 import java.awt.Color
 import co.stellarskys.stella.utils.CompatHelpers.*
+import net.minecraft.client.entity.EntityPlayerSP
 
 object clear{
     // constants

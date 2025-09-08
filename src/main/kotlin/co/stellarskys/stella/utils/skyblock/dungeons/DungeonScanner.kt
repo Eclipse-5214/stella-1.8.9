@@ -5,18 +5,14 @@ import co.stellarskys.stella.events.AreaEvent
 import co.stellarskys.stella.events.EventBus
 import co.stellarskys.stella.events.TickEvent
 import co.stellarskys.stella.events.WorldEvent
-import co.stellarskys.stella.utils.ChatUtils
-import co.stellarskys.stella.utils.CommandUtils
 import co.stellarskys.stella.utils.TickUtils
 import co.stellarskys.stella.utils.WorldUtils
 import co.stellarskys.stella.utils.skyblock.LocationUtils
 import co.stellarskys.stella.utils.CompatHelpers.*
 import co.stellarskys.stella.utils.skyblock.HypixelApi
-import net.minecraft.client.entity.AbstractClientPlayer
 import net.minecraft.entity.player.EnumPlayerModelParts
 import net.minecraft.client.resources.DefaultPlayerSkin
 import net.minecraft.world.storage.MapData
-import java.util.UUID
 
 object DungeonScanner {
     val availableComponents = getScanCoords().toMutableList()
@@ -380,13 +376,6 @@ object DungeonScanner {
 
             v.lastRoomCheck = System.currentTimeMillis()
             v.lastRoom = currRoom
-        }
-
-        val selfName = Stella.mc.thePlayer?.name ?: return
-        val self = players.find { it.name == selfName }
-        if (self != null) {
-            players.remove(self)
-            players.add(self)
         }
     }
 

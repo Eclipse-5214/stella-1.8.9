@@ -69,18 +69,12 @@ object Render2D {
         GlStateManager.color(1f, 1f, 1f, 1f)
 
         mc.textureManager.bindTexture(newImage)
-
-        val stream = mc.resourceManager.getResource(newImage).inputStream
-        val bufferedImage = ImageIO.read(stream)
-        val texWidth = bufferedImage.width
-        val texHeight = bufferedImage.height
-
         Gui.drawScaledCustomSizeModalRect(
             x, y,
             0f, 0f,
-            texWidth, texHeight, // assuming full texture region
+            256, 256,
             width, height,
-            texWidth.toFloat(), texHeight.toFloat()
+            256f, 256f
         )
 
         postDraw()

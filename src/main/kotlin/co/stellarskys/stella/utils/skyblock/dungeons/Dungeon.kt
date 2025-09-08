@@ -8,15 +8,14 @@ import co.stellarskys.stella.utils.clearCodes
 import co.stellarskys.stella.utils.skyblock.HypixelApi
 import co.stellarskys.stella.utils.skyblock.LocationUtils
 import co.stellarskys.stella.utils.skyblock.dungeons.DungeonScanner.currentRoom
-import kotlin.math.ceil
-import kotlin.math.floor
 import co.stellarskys.stella.utils.CompatHelpers.*
 import net.minecraft.network.play.server.*
 import net.minecraft.world.storage.MapData
 import net.minecraft.entity.monster.EntityZombie
 import net.minecraft.item.ItemMap
 import net.minecraft.util.Vec4b
-
+import kotlin.math.ceil
+import kotlin.math.floor
 
 val puzzleEnums = mapOf(
     "✦" to 0,
@@ -293,6 +292,14 @@ object Dungeon {
                                 currentClass = className
                                 currentLevel = decodeRoman(classLevel)
                             }
+
+                            players.toList()
+                                .sortedWith(
+                                    compareBy<Pair<String, PlayerInfo>> { it.first.equals(player.name.string, ignoreCase = true) }
+                                        .thenBy { it.first.lowercase() }
+                                )
+                                .toMap(LinkedHashMap())
+                                .toMutableMap()
                         }
                     }
                 }
