@@ -9,6 +9,7 @@ import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.BlockPos
 import org.lwjgl.opengl.GL11.*
 import java.awt.Color
+import kotlin.math.hypot
 
 object Render3D {
     private val renderManager = Stella.mc.renderManager
@@ -183,61 +184,96 @@ object Render3D {
         GlStateManager.popMatrix()
     }
 
-    fun drawString(
+    fun renderString(
         text: String,
         x: Double,
         y: Double,
         z: Double,
+        bgColor: java.awt.Color = java.awt.Color(0, 0, 0, 180),
+        renderBackground: Boolean = true,
+        scale: Float = 1f,
+        increase: Boolean = true,
+        shadow: Boolean = true,
         partialTicks: Float,
-        depth: Boolean = false,
-        scale: Float = 1.0f
+        phase: Boolean = true
     ) {
-        val player = Stella.mc.thePlayer
+        if (text.isEmpty()) return
+
+        val mc = Stella.mc
+        val fr = mc.fontRendererObj
+        val rm = mc.renderManager
 
         // Interpolated camera position
-        val viewerPosX = player.lastTickPosX + (player.posX - player.lastTickPosX) * partialTicks
-        val viewerPosY = player.lastTickPosY + (player.posY - player.lastTickPosY) * partialTicks
-        val viewerPosZ = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * partialTicks
+        val player = mc.thePlayer
+        val viewerX = player.lastTickPosX + (player.posX - player.lastTickPosX) * partialTicks
+        val viewerY = player.lastTickPosY + (player.posY - player.lastTickPosY) * partialTicks
+        val viewerZ = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * partialTicks
 
         // Position relative to camera
-        val posX = x - viewerPosX
-        val posY = y - viewerPosY
-        val posZ = z - viewerPosZ
+        val relX = x - viewerX
+        val relY = y - viewerY
+        val relZ = z - viewerZ
+
+        // Split into lines if needed
+        val lines = text.split("\n")
+        val lineCount = lines.size
+        val totalWidth = lines.maxOf { fr.getStringWidth(it.replace(Regex("§."), "")) }
+
+        // Distance scaling
+        var distScale = scale
+        if (increase) {
+            val dist = hypot(hypot(relX, relY), relZ)
+            distScale = scale * 0.45f * (dist / 120.0).toFloat()
+        }
+
+        val mult = if (mc.gameSettings.thirdPersonView == 2) -1 else 1
 
         GlStateManager.pushMatrix()
-        GlStateManager.translate(posX.toFloat(), posY.toFloat(), posZ.toFloat())
-
-        // Rotate to face the player
-        GlStateManager.rotate(-renderManager.playerViewY, 0.0f, 1.0f, 0.0f)
-        GlStateManager.rotate(renderManager.playerViewX, 1.0f, 0.0f, 0.0f)
-
-        // Scale down to world size
-        val textScale = scale * 0.025f
-        GlStateManager.scale(-textScale, -textScale, textScale)
+        GlStateManager.translate(relX.toFloat(), relY.toFloat(), relZ.toFloat())
+        GlStateManager.rotate(-rm.playerViewY, 0f, 1f, 0f)
+        GlStateManager.rotate(rm.playerViewX * mult, 1f, 0f, 0f)
+        GlStateManager.scale(-distScale, -distScale, distScale)
 
         GlStateManager.disableLighting()
-
-        if (!depth) {
-            GlStateManager.depthMask(false)
-            GlStateManager.disableDepth()
-        }
-
         GlStateManager.enableBlend()
-        GlStateManager.blendFunc(770, 771)
+        GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        Tessellator.getInstance().worldRenderer // just to ensure class is loaded
 
-        val width = Stella.mc.fontRendererObj.getStringWidth(text) / 2.0f
-        Stella.mc.fontRendererObj.drawString(text, -width, 0f, 0xFFFFFF, true)
+        GlStateManager.depthMask(false)
+        if (phase) GlStateManager.disableDepth()
 
-        if (!depth) {
-            GlStateManager.enableDepth()
-            GlStateManager.depthMask(true)
+        // Background box
+        if (renderBackground) {
+            val r = bgColor.red / 255f
+            val g = bgColor.green / 255f
+            val b = bgColor.blue / 255f
+            val a = bgColor.alpha / 255f
+            val halfWidth = (totalWidth / 2f).toDouble()
+
+            GlStateManager.disableTexture2D()
+            val tess = Tessellator.getInstance()
+            val wr = tess.worldRenderer
+            wr.begin(GL_QUADS, DefaultVertexFormats.POSITION_COLOR)
+            wr.pos(-halfWidth - 1, -1.0, 0.0).color(r, g, b, a).endVertex()
+            wr.pos(-halfWidth - 1, 9.0 * lineCount, 0.0).color(r, g, b, a).endVertex()
+            wr.pos(halfWidth + 1, 9.0 * lineCount, 0.0).color(r, g, b, a).endVertex()
+            wr.pos(halfWidth + 1, -1.0, 0.0).color(r, g, b, a).endVertex()
+            tess.draw()
+            GlStateManager.enableTexture2D()
         }
 
-        GlStateManager.enableTexture2D()
+        // Draw each line
+        for ((i, line) in lines.withIndex()) {
+            val cleanWidth = fr.getStringWidth(line.replace(Regex("§."), ""))
+            fr.drawString(line, -cleanWidth / 2f, i * 9f, 0xFFFFFF, shadow)
+        }
+
+        if (phase) GlStateManager.enableDepth()
+        if (renderBackground) GlStateManager.color(1f, 1f, 1f, 1f)
+
+        GlStateManager.depthMask(true)
         GlStateManager.disableBlend()
         GlStateManager.enableLighting()
-
         GlStateManager.popMatrix()
     }
-
 }

@@ -81,8 +81,8 @@ object termNumbers: Feature("termNumbers") {
 
                     if (pdistance < 1600) {
                         // Draw the floating label
-                        if (pdistance > 13) Render3D.drawString(text, term.x + 0.5, term.y + 1.95, term.z + 0.5, partialTicks, depth = false, scale = 2f)
-                        else Render3D.drawString(text, term.x + 0.5, term.y + 1.95, term.z + 0.5, partialTicks, false, 0.03f)
+                        if (pdistance > 13) Render3D.renderString(text, term.x + 0.5, term.y + 1.95, term.z + 0.5, Color(0, 0, 0, 180), false, 2f, true, true, partialTicks, true)
+                        else Render3D.renderString(text, term.x + 0.5, term.y + 1.95, term.z + 0.5, Color(0, 0, 0, 180), false, 0.03f, false, true, partialTicks, true)
                         if (highlightTerms) Render3D.renderBlock(BlockPos(term.x, term.y, term.z), partialTicks,true, color, 1f, false)
                     }
                 }
