@@ -16,7 +16,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiMainMenu
 import net.minecraft.client.gui.inventory.GuiInventory
 
-@Mod(modid = "assets/stella", version = "1.0.0", useMetadata = true, clientSideOnly = true)
+@Mod(modid = "stella", version = "1.0.0", useMetadata = true, clientSideOnly = true)
 class Stella {
     private var shown = false
     private var eventCall: EventBus.EventCall? = null
@@ -39,7 +39,7 @@ class Stella {
         eventCall = EventBus.register<EntityEvent.Join> ({ event ->
             if (event.entity == mc.thePlayer) {
                 ChatUtils.addMessage(
-                    "$PREFIX §fMod loaded.",
+                    "$PREFIX §bMod loaded.",
                     "§b${FeatureLoader.getFeatCount()} §dmodules §8- §b${FeatureLoader.getLoadtime()}ms §8- §b${FeatureLoader.getCommandCount()} §dcommands"
                 )
                 eventCall?.unregister()
@@ -88,7 +88,7 @@ class Stella {
         val mc = Minecraft.getMinecraft()
         val NAMESPACE: String = "stella"
         val INSTANCE: Stella? = null
-        val PREFIX: String = "§b[§dStella§b]"
+        val PREFIX: String = "§8[§dStella§8]"
         val SHORTPREFIX: String = "§d[SA]"
 
         var isInInventory = false

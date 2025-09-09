@@ -85,12 +85,12 @@ object Render3D {
         GlStateManager.popMatrix()
     }
 
-    fun renderBlock(blockPosition: BlockPos, partialTicks: Float, fill: Boolean, color: Color, lineWidth: Float, phase: Boolean = true) {
+    fun renderBlock(blockPosition: BlockPos, partialTicks: Float, fill: Boolean, color: Color, lineWidth: Float, phase: Boolean = true, fillColor: Color = color) {
         val world = Stella.mc.theWorld
         val blockState = world.getBlockState(blockPosition)
         val block = blockState.block
-        val boundingBox = block.getSelectedBoundingBox(world, blockPosition)
-            ?: AxisAlignedBB(blockPosition.x.toDouble(), blockPosition.y.toDouble(), blockPosition.z.toDouble(), blockPosition.x + 1.0, blockPosition.y + 1.0, blockPosition.z + 1.0)
+        val boundingBox = block.getSelectedBoundingBox(world, blockPosition).expand(0.005, 0.005, 0.005)
+            ?: AxisAlignedBB(blockPosition.x.toDouble(), blockPosition.y.toDouble(), blockPosition.z.toDouble(), blockPosition.x + 1.0, blockPosition.y + 1.0, blockPosition.z + 1.0).expand(0.005, 0.005, 0.005)
         val player = Stella.mc.thePlayer
         val interpolatedX = player.lastTickPosX + (player.posX - player.lastTickPosX) * partialTicks
         val interpolatedY = player.lastTickPosY + (player.posY - player.lastTickPosY) * partialTicks
@@ -117,7 +117,7 @@ object Render3D {
         val worldRenderer = tessellator.worldRenderer
 
         if (fill) {
-            GlStateManager.color(color.red / 255.0f, color.green / 255.0f, color.blue / 255.0f, color.alpha / 255.0f)
+            GlStateManager.color(fillColor.red / 255.0f, fillColor.green / 255.0f, fillColor.blue / 255.0f, fillColor.alpha / 255.0f)
             worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION)
             worldRenderer.pos(minX, minY, minZ).endVertex()
             worldRenderer.pos(minX, maxY, minZ).endVertex()
@@ -182,4 +182,62 @@ object Render3D {
         GlStateManager.disableBlend()
         GlStateManager.popMatrix()
     }
+
+    fun drawString(
+        text: String,
+        x: Double,
+        y: Double,
+        z: Double,
+        partialTicks: Float,
+        depth: Boolean = false,
+        scale: Float = 1.0f
+    ) {
+        val player = Stella.mc.thePlayer
+
+        // Interpolated camera position
+        val viewerPosX = player.lastTickPosX + (player.posX - player.lastTickPosX) * partialTicks
+        val viewerPosY = player.lastTickPosY + (player.posY - player.lastTickPosY) * partialTicks
+        val viewerPosZ = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * partialTicks
+
+        // Position relative to camera
+        val posX = x - viewerPosX
+        val posY = y - viewerPosY
+        val posZ = z - viewerPosZ
+
+        GlStateManager.pushMatrix()
+        GlStateManager.translate(posX.toFloat(), posY.toFloat(), posZ.toFloat())
+
+        // Rotate to face the player
+        GlStateManager.rotate(-renderManager.playerViewY, 0.0f, 1.0f, 0.0f)
+        GlStateManager.rotate(renderManager.playerViewX, 1.0f, 0.0f, 0.0f)
+
+        // Scale down to world size
+        val textScale = scale * 0.025f
+        GlStateManager.scale(-textScale, -textScale, textScale)
+
+        GlStateManager.disableLighting()
+
+        if (!depth) {
+            GlStateManager.depthMask(false)
+            GlStateManager.disableDepth()
+        }
+
+        GlStateManager.enableBlend()
+        GlStateManager.blendFunc(770, 771)
+
+        val width = Stella.mc.fontRendererObj.getStringWidth(text) / 2.0f
+        Stella.mc.fontRendererObj.drawString(text, -width, 0f, 0xFFFFFF, true)
+
+        if (!depth) {
+            GlStateManager.enableDepth()
+            GlStateManager.depthMask(true)
+        }
+
+        GlStateManager.enableTexture2D()
+        GlStateManager.disableBlend()
+        GlStateManager.enableLighting()
+
+        GlStateManager.popMatrix()
+    }
+
 }

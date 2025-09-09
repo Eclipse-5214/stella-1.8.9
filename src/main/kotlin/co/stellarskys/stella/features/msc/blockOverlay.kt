@@ -29,7 +29,8 @@ object blockOverlay : Feature("overlayEnabled") {
                     config["fillBlockOverlay"] as Boolean,
                     outlineColor.toColor(),
                     outlineWidth,
-                    false
+                    false,
+                    fillColor.toColor()
                 )
             }
         }
