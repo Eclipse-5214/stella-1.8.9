@@ -23,7 +23,7 @@ object blockOverlay : Feature("overlayEnabled") {
                 val outlineWidth = (config["overlayLineWidth"] as Int).toFloat()
                 val fillColor = if (chroma) RGBA(255,255,255,255) else config["blockFillColor"] as RGBA
 
-                Render3D.renderBlock(
+                Render3D.renderBlockShape(
                     event.blockPos,
                     event.partialTicks,
                     config["fillBlockOverlay"] as Boolean,

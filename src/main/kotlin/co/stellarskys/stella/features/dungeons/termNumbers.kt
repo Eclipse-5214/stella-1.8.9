@@ -52,7 +52,6 @@ object termNumbers: Feature("termNumbers") {
 
             val partialTicks = event.partialTicks
 
-            val termNumbers     = config["termNumbers"]     as Boolean
             val termNumber      = config["termNumber"]      as Int
             val highlightTerms  = config["highlightTerms"]  as Boolean
             val termColor       = config["termColor"]       as RGBA // or RGBA, depending on your DSL
@@ -68,7 +67,7 @@ object termNumbers: Feature("termNumbers") {
             for ((_, phaseData) in TermRegistry.getAll()) {
                 for (term in phaseData) {
                     var text = " "
-                    var color = Color(0,0,0)
+                    var color = termColor.toColor()
                     //filtering
                     if (((m7Roles && term.m7ClassCode != "S") || (!m7Roles && term.classCode != "S")) && t != term.number && t != 5) continue
 

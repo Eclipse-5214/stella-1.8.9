@@ -1,10 +1,16 @@
 package co.stellarskys.stella.utils.render
 
 import co.stellarskys.stella.Stella
-import co.stellarskys.stella.utils.CompatHelpers.DrawContext
+import net.minecraft.block.Block
+import net.minecraft.block.BlockCauldron
+import net.minecraft.block.BlockFence
+import net.minecraft.block.BlockFenceGate
+import net.minecraft.block.BlockHopper
+import net.minecraft.block.BlockWall
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
+import net.minecraft.init.Blocks
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.BlockPos
 import org.lwjgl.opengl.GL11.*
@@ -13,10 +19,6 @@ import kotlin.math.hypot
 
 object Render3D {
     private val renderManager = Stella.mc.renderManager
-
-    fun renderBox(ctx: DrawContext, x: Double, y: Double, z: Double, width: Double, height: Double, color: Color, phaze: Boolean = false, lineWidth: Double = 1.0) {
-        renderBox(x, y, z, width, height, color, phaze, lineWidth)
-    }
 
     fun renderBox(
         x: Double,
@@ -184,6 +186,169 @@ object Render3D {
         GlStateManager.popMatrix()
     }
 
+    fun renderBlockShape(
+        blockPos: BlockPos,
+        partialTicks: Float,
+        fill: Boolean,
+        color: Color,
+        lineWidth: Float,
+        phase: Boolean = true,
+        fillColor: Color = color
+    ) {
+        val world = Stella.mc.theWorld
+        val state = world.getBlockState(blockPos)
+        val block = state.block
+
+        val shapeBoxes = mutableListOf<AxisAlignedBB>()
+
+        if (shouldForceAabb(block)) {
+            block.getSelectedBoundingBox(world, blockPos)?.let { shapeBoxes.add(it) }
+        } else {
+            block.addCollisionBoxesToList(
+                world,
+                blockPos,
+                state,
+                AxisAlignedBB(
+                    blockPos.x.toDouble(),
+                    blockPos.y.toDouble(),
+                    blockPos.z.toDouble(),
+                    blockPos.x + 1.0,
+                    blockPos.y + 1.0,
+                    blockPos.z + 1.0
+                ),
+                shapeBoxes,
+                Stella.mc.thePlayer
+            )
+            if (shapeBoxes.isEmpty()) {
+                block.getSelectedBoundingBox(world, blockPos)?.let { shapeBoxes.add(it) }
+            }
+        }
+
+        val player = Stella.mc.thePlayer
+        val interpX = player.lastTickPosX + (player.posX - player.lastTickPosX) * partialTicks
+        val interpY = player.lastTickPosY + (player.posY - player.lastTickPosY) * partialTicks
+        val interpZ = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * partialTicks
+
+        GlStateManager.pushMatrix()
+        GlStateManager.enableBlend()
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
+        GlStateManager.disableTexture2D()
+        GlStateManager.depthMask(false)
+
+        if (phase) GlStateManager.disableDepth() else GlStateManager.enableDepth()
+        GlStateManager.disableCull()
+
+        val tess = Tessellator.getInstance()
+        val wr = tess.worldRenderer
+
+        for (rawBox in shapeBoxes) {
+            val aabb = rawBox.expand(0.005, 0.005, 0.005)
+
+            val minX = aabb.minX - interpX
+            val minY = aabb.minY - interpY
+            val minZ = aabb.minZ - interpZ
+            val maxX = aabb.maxX - interpX
+            val maxY = aabb.maxY - interpY
+            val maxZ = aabb.maxZ - interpZ
+
+            if (fill) {
+                GlStateManager.color(
+                    fillColor.red / 255f,
+                    fillColor.green / 255f,
+                    fillColor.blue / 255f,
+                    fillColor.alpha / 255f
+                )
+                wr.begin(GL_QUADS, DefaultVertexFormats.POSITION)
+                // draw quads...
+                wr.pos(minX, minY, minZ).endVertex()
+                wr.pos(minX, maxY, minZ).endVertex()
+                wr.pos(maxX, maxY, minZ).endVertex()
+                wr.pos(maxX, minY, minZ).endVertex()
+
+                wr.pos(maxX, minY, maxZ).endVertex()
+                wr.pos(maxX, maxY, maxZ).endVertex()
+                wr.pos(minX, maxY, maxZ).endVertex()
+                wr.pos(minX, minY, maxZ).endVertex()
+
+                wr.pos(minX, minY, minZ).endVertex()
+                wr.pos(minX, minY, maxZ).endVertex()
+                wr.pos(minX, maxY, maxZ).endVertex()
+                wr.pos(minX, maxY, minZ).endVertex()
+
+                wr.pos(maxX, maxY, minZ).endVertex()
+                wr.pos(maxX, maxY, maxZ).endVertex()
+                wr.pos(maxX, minY, maxZ).endVertex()
+                wr.pos(maxX, minY, minZ).endVertex()
+
+                wr.pos(minX, minY, minZ).endVertex()
+                wr.pos(maxX, minY, minZ).endVertex()
+                wr.pos(maxX, minY, maxZ).endVertex()
+                wr.pos(minX, minY, maxZ).endVertex()
+
+                wr.pos(minX, maxY, maxZ).endVertex()
+                wr.pos(maxX, maxY, maxZ).endVertex()
+                wr.pos(maxX, maxY, minZ).endVertex()
+                wr.pos(minX, maxY, minZ).endVertex()
+                tess.draw()
+            }
+
+            glLineWidth(lineWidth)
+            GlStateManager.color(
+                color.red / 255f,
+                color.green / 255f,
+                color.blue / 255f,
+                color.alpha / 255f
+            )
+            wr.begin(GL_LINES, DefaultVertexFormats.POSITION)
+            // draw lines...
+            wr.pos(minX, minY, minZ).endVertex()
+            wr.pos(maxX, minY, minZ).endVertex()
+
+            wr.pos(maxX, minY, minZ).endVertex()
+            wr.pos(maxX, minY, maxZ).endVertex()
+
+            wr.pos(maxX, minY, maxZ).endVertex()
+            wr.pos(minX, minY, maxZ).endVertex()
+
+            wr.pos(minX, minY, maxZ).endVertex()
+            wr.pos(minX, minY, minZ).endVertex()
+
+            wr.pos(minX, maxY, minZ).endVertex()
+            wr.pos(maxX, maxY, minZ).endVertex()
+
+            wr.pos(maxX, maxY, minZ).endVertex()
+            wr.pos(maxX, maxY, maxZ).endVertex()
+
+            wr.pos(maxX, maxY, maxZ).endVertex()
+            wr.pos(minX, maxY, maxZ).endVertex()
+
+            wr.pos(minX, maxY, maxZ).endVertex()
+            wr.pos(minX, maxY, minZ).endVertex()
+
+            wr.pos(minX, minY, minZ).endVertex()
+            wr.pos(minX, maxY, minZ).endVertex()
+
+            wr.pos(maxX, minY, minZ).endVertex()
+            wr.pos(maxX, maxY, minZ).endVertex()
+
+            wr.pos(maxX, minY, maxZ).endVertex()
+            wr.pos(maxX, maxY, maxZ).endVertex()
+
+            wr.pos(minX, minY, maxZ).endVertex()
+            wr.pos(minX, maxY, maxZ).endVertex()
+            tess.draw()
+        }
+
+        GlStateManager.enableCull()
+        GlStateManager.enableDepth()
+        GlStateManager.depthMask(true)
+        GlStateManager.enableTexture2D()
+        GlStateManager.disableBlend()
+        GlStateManager.popMatrix()
+    }
+
+
+
     fun renderString(
         text: String,
         x: Double,
@@ -275,5 +440,13 @@ object Render3D {
         GlStateManager.disableBlend()
         GlStateManager.enableLighting()
         GlStateManager.popMatrix()
+    }
+
+    fun shouldForceAabb(block: Block): Boolean {
+        return block is BlockFence ||
+                block is BlockFenceGate ||
+                block is BlockWall ||
+                block is BlockHopper ||
+                block is BlockCauldron
     }
 }
