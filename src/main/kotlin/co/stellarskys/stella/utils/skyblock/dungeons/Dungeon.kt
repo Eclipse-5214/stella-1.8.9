@@ -158,7 +158,10 @@ object Dungeon {
     init {
         EventBus.register<TablistEvent> {
             TickUtils.schedule(1) {
-                val self = players[Stella.mc.thePlayer?.name?.string!!]
+                val playerName = Stella.mc.thePlayer?.name?.string
+                if (playerName == null) return@schedule
+                val self = players[playerName]
+
                 val alives = players.values
                     .filterNot { it.isDead || it == self }
                     .sortedBy { it.tabIndex }

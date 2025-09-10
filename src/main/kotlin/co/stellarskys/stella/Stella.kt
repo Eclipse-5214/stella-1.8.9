@@ -40,7 +40,7 @@ class Stella {
             if (event.entity == mc.thePlayer) {
                 ChatUtils.addMessage(
                     "$PREFIX §bMod loaded.",
-                    "§b${FeatureLoader.getFeatCount()} §dmodules §8- §b${FeatureLoader.getLoadtime()}ms §8- §b${FeatureLoader.getCommandCount()} §dcommands"
+                    "§b${FeatureLoader.getFeatCount()} §dmodules §8- §b${FeatureLoader.getLoadtime()}§dms §8- §b${FeatureLoader.getCommandCount()} §dcommands"
                 )
                 eventCall?.unregister()
                 eventCall = null
@@ -88,7 +88,7 @@ class Stella {
         val mc = Minecraft.getMinecraft()
         val NAMESPACE: String = "stella"
         val INSTANCE: Stella? = null
-        val PREFIX: String = "§8[§dStella§8]"
+        val PREFIX: String = "§7[§dStella§7]"
         val SHORTPREFIX: String = "§d[SA]"
 
         var isInInventory = false
