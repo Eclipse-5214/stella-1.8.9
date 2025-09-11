@@ -3,16 +3,20 @@ package co.stellarskys.stella.utils.skyblock.dungeons
 import co.stellarskys.stella.Stella
 import co.stellarskys.stella.events.AreaEvent
 import co.stellarskys.stella.events.EventBus
+import co.stellarskys.stella.events.RenderEvent
 import co.stellarskys.stella.events.TickEvent
 import co.stellarskys.stella.events.WorldEvent
 import co.stellarskys.stella.utils.TickUtils
 import co.stellarskys.stella.utils.WorldUtils
 import co.stellarskys.stella.utils.skyblock.LocationUtils
 import co.stellarskys.stella.utils.CompatHelpers.*
+import co.stellarskys.stella.utils.render.Render3D
 import co.stellarskys.stella.utils.skyblock.HypixelApi
 import net.minecraft.entity.player.EnumPlayerModelParts
 import net.minecraft.client.resources.DefaultPlayerSkin
 import net.minecraft.world.storage.MapData
+import java.awt.Color
+import kotlin.text.toDouble
 
 object DungeonScanner {
     val availableComponents = getScanCoords().toMutableList()
@@ -22,6 +26,7 @@ object DungeonScanner {
     val uniqueDoors = mutableSetOf<Door>()
     val discoveredRooms = mutableMapOf<String, DiscoveredRoom>()
     val players = mutableListOf<DungeonPlayer>()
+    val debugScanPoints = mutableListOf<Triple<Double, Double, Double>>() // x, y, z
 
     var currentRoom: Room? = null
     var lastIdx: Int? = null
@@ -98,6 +103,12 @@ object DungeonScanner {
 
 
         EventBus.register<WorldEvent.Unload> { reset() }
+
+        EventBus.register<RenderEvent.World> { event ->
+            for ((x, y, z) in debugScanPoints) {
+                Render3D.renderBox(x, y, z, 1.0, 1.0, Color.cyan, true)
+            }
+        }
     }
 
     fun onPlayerMove(entity: DungeonPlayer?, x: Double, z: Double, yaw: Float) {
@@ -130,6 +141,8 @@ object DungeonScanner {
         currentRoom = null
         lastIdx = null
         players.clear()
+
+        debugScanPoints.clear()
     }
 
     fun scan() {
@@ -141,6 +154,9 @@ object DungeonScanner {
             if (!isChunkLoaded(rx,0,rz)) continue
             val roofHeight = getHighestY(rx, rz) ?: continue
             availableComponents.removeAt(idx)
+
+            val y = roofHeight.toDouble()
+            debugScanPoints.add(Triple(rx.toDouble() + 0.5, y, rz.toDouble() + 0.5))
 
             // Door detection
             if (cx % 2 == 1 || cz % 2 == 1) {
@@ -178,13 +194,13 @@ object DungeonScanner {
             for ((dx, dz, cxoff, zoff) in directions.map { it }) {
                 val nx = rx + dx
                 val nz = rz + dz
-                val blockBelow = WorldUtils.getBlockNumericId(nx, roofHeight, nz)
-                val blockAbove = WorldUtils.getBlockNumericId(nx, roofHeight + 1, nz)
+                val heightBlock = WorldUtils.getBlockNumericId(nx, roofHeight, nz)
+                val aboveHeightBlock = WorldUtils.getBlockNumericId(nx, roofHeight + 1, nz)
 
-                if (room.type == RoomType.ENTRANCE && blockBelow != 0) {
+                if (room.type == RoomType.ENTRANCE && heightBlock != 0) {
                     continue
                 }
-                if (blockBelow == 0 || blockAbove != 0) continue
+                if (heightBlock == 0 || aboveHeightBlock != 0) continue
 
                 val neighborComp = Pair(x + cxoff, z + zoff)
                 val neighborIdx = getRoomIdx(neighborComp)
@@ -417,53 +433,49 @@ object DungeonScanner {
                     val rmx = cx / 2
                     val rmz = cz / 2
                     val roomIdx = getRoomIdx(rmx to rmz)
-                    val room = rooms[roomIdx] ?: Room(rmx to rmz).also {newRoom ->
-                        rooms[roomIdx] = newRoom
-                        uniqueRooms.add(newRoom)
 
-                        for ((dx, dz) in mapDirections) {
-                            val doorCx = cx + dx
-                            val doorCz = cz + dz
+                    val room = rooms[roomIdx] ?: Room(rmx to rmz).also {
+                        rooms[roomIdx] = it
+                        uniqueRooms.add(it)
+                    }
 
-                            // Only scan odd coordinates (door space)
-                            if (doorCx % 2 == 0 && doorCz % 2 == 0) {
-                                continue
-                            }
+                    for ((dx, dz) in mapDirections) {
+                        val doorCx = cx + dx
+                        val doorCz = cz + dz
+                        if (doorCx % 2 == 0 && doorCz % 2 == 0) continue
 
-                            val doorX = x + dx * Dungeon.mapGapSize / 2
-                            val doorZ = z + dz * Dungeon.mapGapSize / 2
-                            val doorIdx = doorX + doorZ * 128
-                            val center = colors.getOrNull(doorIdx)
+                        val doorX = x + dx * Dungeon.mapGapSize / 2
+                        val doorZ = z + dz * Dungeon.mapGapSize / 2
+                        val doorIdx = doorX + doorZ * 128
+                        val center = colors.getOrNull(doorIdx)
 
-                            // If there's a pixel, and it's a door, skip merging
-                            val isGap = center == null || center == 0.toByte()
-                            val isDoor = if (!isGap) {
-                                val horiz = listOf(
-                                    colors.getOrNull(doorIdx - 128 - 4) ?: 0,
-                                    colors.getOrNull(doorIdx - 128 + 4) ?: 0
-                                )
-                                val vert = listOf(
-                                    colors.getOrNull(doorIdx - 128 * 5) ?: 0,
-                                    colors.getOrNull(doorIdx + 128 * 3) ?: 0
-                                )
-                                horiz.all { it == 0.toByte() } || vert.all { it == 0.toByte() }
-                            } else false
+                        val isGap = center == null || center == 0.toByte()
+                        val isDoor = if (!isGap) {
+                            val horiz = listOf(
+                                colors.getOrNull(doorIdx - 128 - 4) ?: 0,
+                                colors.getOrNull(doorIdx - 128 + 4) ?: 0
+                            )
+                            val vert = listOf(
+                                colors.getOrNull(doorIdx - 128 * 5) ?: 0,
+                                colors.getOrNull(doorIdx + 128 * 3) ?: 0
+                            )
+                            horiz.all { it == 0.toByte() } || vert.all { it == 0.toByte() }
+                        } else false
 
-                            if (isGap || isDoor) continue // skip if there's a gap or a door
+                        if (isGap || isDoor) continue
 
-                            val neighborCx = cx + dx * 2
-                            val neighborCz = cz + dz * 2
-                            val neighborComp = neighborCx / 2 to neighborCz / 2
-                            val neighborIdx = getRoomIdx(neighborComp)
-                            if (neighborIdx !in rooms.indices) continue
+                        val neighborCx = cx + dx * 2
+                        val neighborCz = cz + dz * 2
+                        val neighborComp = neighborCx / 2 to neighborCz / 2
+                        val neighborIdx = getRoomIdx(neighborComp)
+                        if (neighborIdx !in rooms.indices) continue
 
-                            val neighborRoom = rooms[neighborIdx]
-                            if (neighborRoom == null) {
-                                newRoom.addComponent(neighborComp)
-                                rooms[neighborIdx] = newRoom
-                            } else if (neighborRoom != newRoom && neighborRoom.type != RoomType.ENTRANCE) {
-                                mergeRooms(neighborRoom, newRoom)
-                            }
+                        val neighborRoom = rooms[neighborIdx]
+                        if (neighborRoom == null) {
+                            room.addComponent(neighborComp)
+                            rooms[neighborIdx] = room
+                        } else if (neighborRoom != room && neighborRoom.type != RoomType.ENTRANCE) {
+                            mergeRooms(neighborRoom, room)
                         }
                     }
 

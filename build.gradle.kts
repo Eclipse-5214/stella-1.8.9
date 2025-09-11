@@ -18,7 +18,7 @@ val mixinGroup = "$baseGroup.mixin"
 val modid: String by project
 val transformerFile = file("src/main/resources/accesstransformer.cfg")
 val elementaVersion = 710
-val ucVersion = 415
+val ucVersion = 427
 
 // Toolchains:
 java {

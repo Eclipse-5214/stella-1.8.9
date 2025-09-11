@@ -46,6 +46,7 @@ class Door(val worldPos: Pair<Int, Int>, val componentPos: Pair<Int, Int>) {
         if (!isChunkLoaded(x, y, z)) return
 
         val id = WorldUtils.getBlockNumericId(x, y, z)
+        println("Checking door type at ($x, $y, $z) id: $id")
 
         if (id == 0 || id == 166) return
 
