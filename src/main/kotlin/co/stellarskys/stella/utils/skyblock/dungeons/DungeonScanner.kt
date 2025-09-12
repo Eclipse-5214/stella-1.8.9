@@ -26,7 +26,6 @@ object DungeonScanner {
     val uniqueDoors = mutableSetOf<Door>()
     val discoveredRooms = mutableMapOf<String, DiscoveredRoom>()
     val players = mutableListOf<DungeonPlayer>()
-    val debugScanPoints = mutableListOf<Triple<Double, Double, Double>>() // x, y, z
 
     var currentRoom: Room? = null
     var lastIdx: Int? = null
@@ -103,12 +102,6 @@ object DungeonScanner {
 
 
         EventBus.register<WorldEvent.Unload> { reset() }
-
-        EventBus.register<RenderEvent.World> { event ->
-            for ((x, y, z) in debugScanPoints) {
-                Render3D.renderBox(x, y, z, 1.0, 1.0, Color.cyan, true)
-            }
-        }
     }
 
     fun onPlayerMove(entity: DungeonPlayer?, x: Double, z: Double, yaw: Float) {
@@ -142,7 +135,6 @@ object DungeonScanner {
         lastIdx = null
         players.clear()
 
-        debugScanPoints.clear()
     }
 
     fun scan() {
@@ -156,7 +148,6 @@ object DungeonScanner {
             availableComponents.removeAt(idx)
 
             val y = roofHeight.toDouble()
-            debugScanPoints.add(Triple(rx.toDouble() + 0.5, y, rz.toDouble() + 0.5))
 
             // Door detection
             if (cx % 2 == 1 || cz % 2 == 1) {

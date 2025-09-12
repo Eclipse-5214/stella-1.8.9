@@ -70,9 +70,8 @@ object clear{
 
         DungeonScanner.doors.forEach { door ->
             if (door?.state != DoorState.DISCOVERED) return@forEach
+            val color = doorTypeColors[door.type] ?: return@forEach
 
-            val type = if (door.opened) DoorType.NORMAL else door.type
-            val color = doorTypeColors[type] ?: return@forEach
             val comp = door.getComp()
             val cx = comp.first / 2  * 22
             val cy = comp.second / 2 * 22
