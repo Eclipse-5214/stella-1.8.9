@@ -27,7 +27,7 @@ val config = Config("Stella", "Stella") {
                 description = "Shows the current dungeon rooms name in a hud"
             }
         }
-
+        
         subcategory("Terminals") {
             toggle {
                 configName = "termNumbers"

@@ -9,6 +9,7 @@ import net.minecraft.client.model.ModelBase
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.inventory.Container
 import net.minecraft.item.ItemStack
 import net.minecraft.network.Packet
 import net.minecraft.network.play.server.S02PacketChat
@@ -89,12 +90,12 @@ abstract class RenderEvent {
 
 abstract class GuiEvent {
     class Open(val screen: GuiScreen) : Event()
-    class Close : CancellableEvent()
+    class Close(val gui: GuiContainer, val container: Container) : CancellableEvent()
     class Click(val gui: GuiScreen) : CancellableEvent()
     class Key(val gui: GuiScreen) : CancellableEvent()
     class BackgroundDraw(val gui: GuiScreen) : CancellableEvent()
     abstract class Slot {
-        class Click(val slot: net.minecraft.inventory.Slot, val gui: GuiContainer) : CancellableEvent()
+        class Click(val slot: net.minecraft.inventory.Slot?, val gui: GuiContainer?, val container: Container, val slotId: Int, val clickedButton: Int, val clickType: Int) : CancellableEvent()
         class RenderPre(val slot: net.minecraft.inventory.Slot, val gui: GuiContainer) : CancellableEvent()
         class RenderPost(val slot: net.minecraft.inventory.Slot, val gui: GuiContainer) : CancellableEvent()
     }

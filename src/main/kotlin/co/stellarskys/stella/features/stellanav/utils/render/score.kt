@@ -13,7 +13,6 @@ object score {
         return stack
     }
 
-
     fun render(context: UDrawContext){
         val matrix = context.matrices
 

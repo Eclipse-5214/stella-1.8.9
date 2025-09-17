@@ -49,7 +49,6 @@ object EventBus {
     fun onGuiOpen(event: GuiOpenEvent) {
         when {
             event.gui != null -> post(GuiEvent.Open(event.gui))
-            else -> post(GuiEvent.Close())
         }
     }
 

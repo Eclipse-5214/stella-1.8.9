@@ -15,6 +15,7 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiMainMenu
 import net.minecraft.client.gui.inventory.GuiInventory
+import org.apache.logging.log4j.LogManager
 
 @Mod(modid = "stella", version = "1.0.0", useMetadata = true, clientSideOnly = true)
 class Stella {
@@ -85,6 +86,7 @@ class Stella {
         private val areaFeatures = mutableListOf<Feature>()
         private val subareaFeatures = mutableListOf<Feature>()
 
+        @JvmField val LOGGER = LogManager.getLogger("stella")
         val mc = Minecraft.getMinecraft()
         val NAMESPACE: String = "stella"
         val INSTANCE: Stella? = null
