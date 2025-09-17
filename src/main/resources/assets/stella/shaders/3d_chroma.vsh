@@ -1,15 +1,10 @@
-#version 150
+#version 120
 
-in vec3 Position;
-in vec4 Color;
-
-uniform mat4 ModelViewMat;
-uniform mat4 ProjMat;
-
-out vec4 vertexColor;
+varying vec3 outPosition;
 
 void main() {
-    gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
+    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
 
-    vertexColor = Color;
+    // Pass the position to the fragment shader
+    outPosition = gl_Vertex.xyz;
 }

@@ -7,6 +7,7 @@ import net.minecraft.block.BlockFence
 import net.minecraft.block.BlockFenceGate
 import net.minecraft.block.BlockHopper
 import net.minecraft.block.BlockWall
+import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
@@ -191,7 +192,9 @@ object Render3D {
         color: Color,
         lineWidth: Float,
         phase: Boolean = true,
-        fillColor: Color = color
+        fillColor: Color = color,
+        chroma: Boolean = false,
+        chromaSpeed: Float = 0f
     ) {
         val world = Stella.mc.theWorld
         val state = world.getBlockState(blockPos)
@@ -227,6 +230,29 @@ object Render3D {
         val interpY = player.lastTickPosY + (player.posY - player.lastTickPosY) * partialTicks
         val interpZ = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * partialTicks
 
+        if (chroma) {
+            val vertexSource = ChromaShader.loadShaderSource("/shaders/3d_chroma.vsh")
+            val fragmentSource = ChromaShader.loadShaderSource("/shaders/3d_chroma.fsh")
+
+            ChromaShader.init(vertexSource, fragmentSource)
+            ChromaShader.bind()
+
+            val player = Stella.mc.thePlayer
+            val position = player.positionVector
+            val scaledRes = ScaledResolution(Stella.mc)
+            val scaledWidth = scaledRes.scaledWidth
+            val size =  30f * (scaledWidth / 100f)
+
+            ChromaShader.setUniforms(
+                chromaSize = size,
+                saturation = 1f,
+                brightness = 1f,
+                timeOffset = chromaSpeed,
+                alpha = 1f, // this will be overridden before each draw
+                playerPos = position
+            )
+        }
+
         GlStateManager.pushMatrix()
         GlStateManager.enableBlend()
         GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
@@ -250,6 +276,8 @@ object Render3D {
             val maxZ = aabb.maxZ - interpZ
 
             if (fill) {
+                if (chroma) ChromaShader.setAlpha(fillColor.alpha / 255f)
+
                 GlStateManager.color(
                     fillColor.red / 255f,
                     fillColor.green / 255f,
@@ -291,6 +319,8 @@ object Render3D {
             }
 
             glLineWidth(lineWidth)
+            if (chroma) ChromaShader.setAlpha(color.alpha / 255f)
+
             GlStateManager.color(
                 color.red / 255f,
                 color.green / 255f,
@@ -343,6 +373,8 @@ object Render3D {
         GlStateManager.enableTexture2D()
         GlStateManager.disableBlend()
         GlStateManager.popMatrix()
+
+        if (chroma) ChromaShader.unbind()
     }
 
 

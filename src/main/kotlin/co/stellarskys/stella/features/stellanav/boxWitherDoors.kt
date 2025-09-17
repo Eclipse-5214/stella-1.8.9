@@ -60,7 +60,6 @@ object boxWitherDoors: Feature("boxWitherDoors", "catacombs") {
             DungeonScanner.doors.forEach { door ->
                 if (door == null) return@forEach
                 if (door.state != DoorState.DISCOVERED) return@forEach
-                if (door.type == DoorType.BLOOD && door.opened) return@forEach
                 if (door.type !in setOf(DoorType.WITHER, DoorType.BLOOD)) return@forEach
 
                 val (x, y, z) = door.getPos()
