@@ -88,8 +88,6 @@ object mapRender {
         h += if (mapInfoUnder) 10 else 0
 
         Render2D.drawRect(context, 0, 0, w, h, mapConfig.mapBgColor)
-
-        renderTestNeuItem()
     }
 
     fun renderMapBorder(context: UDrawContext) {
@@ -108,12 +106,5 @@ object mapRender {
 
         // Right border
         Render2D.drawRect(context, w, 0, borderWidth, h, color)
-    }
-
-    fun renderTestNeuItem() {
-        val item = NEUApi.getItemBySkyblockId("ASPECT_OF_THE_END") ?: return
-        val stack = NEUApi.createDummyStack(item)
-
-        Render2D.renderItem(stack, 142f, 0f, 1f)
     }
 }
