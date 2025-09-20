@@ -231,8 +231,8 @@ object Render3D {
         val interpZ = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * partialTicks
 
         if (chroma) {
-            val vertexSource = ChromaShader.loadShaderSource("/shaders/3d_chroma.vsh")
-            val fragmentSource = ChromaShader.loadShaderSource("/shaders/3d_chroma.fsh")
+            val vertexSource = ChromaShader.loadShaderSource("shaders/3d_chroma.vsh")
+            val fragmentSource = ChromaShader.loadShaderSource("shaders/3d_chroma.fsh")
 
             ChromaShader.init(vertexSource, fragmentSource)
             ChromaShader.bind()
