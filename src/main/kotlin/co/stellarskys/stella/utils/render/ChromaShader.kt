@@ -73,11 +73,15 @@ object ChromaShader {
     }
 
     fun loadShaderSource(path: String): String {
-        val resourceManager = Stella.mc.resourceManager
-        val location = ResourceLocation(Stella.NAMESPACE, path) // e.g. "shaders/chroma.frag"
-
-        resourceManager.getResource(location).inputStream.bufferedReader().use {
-            return it.readText()
+        val location = ResourceLocation(Stella.NAMESPACE, path)
+        return try {
+            Stella.mc.resourceManager.getResource(location).inputStream.bufferedReader().use {
+                it.readText()
+            }
+        } catch (e: Exception) {
+            Stella.LOGGER.error("Failed to load shader from $location", e)
+            throw e
         }
     }
+
 }
