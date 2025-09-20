@@ -102,6 +102,7 @@ dependencies {
     shadowImpl("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2")
     shadowImpl("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
 
+    shadowImpl("com.github.odtheking:odin-lwjgl:68de0d3e0b")
 
     // If you don't want to log in with your real minecraft account, remove this line
     runtimeOnly("me.djtheredstoner:DevAuth-forge-legacy:1.2.1")

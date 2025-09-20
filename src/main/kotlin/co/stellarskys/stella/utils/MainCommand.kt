@@ -2,6 +2,7 @@ package co.stellarskys.stella.utils
 
 import co.stellarskys.stella.Stella
 import co.stellarskys.stella.Stella.Companion.mc
+import co.stellarskys.stella.features.msc.buttonUtils.ButtonLayoutEditor
 import co.stellarskys.stella.hud.HUDEditor
 import co.stellarskys.stella.utils.skyblock.dungeons.Dungeon
 import co.stellarskys.stella.utils.skyblock.dungeons.DungeonScanner
@@ -20,6 +21,13 @@ object MainCommand: CommandUtils(
                 "hud" -> {
                     TickUtils.schedule(1) {
                         mc.displayGuiScreen(HUDEditor())
+                    }
+                    return
+                }
+
+                "buttons" -> {
+                    TickUtils.schedule(1) {
+                        mc.displayGuiScreen(ButtonLayoutEditor())
                     }
                     return
                 }
