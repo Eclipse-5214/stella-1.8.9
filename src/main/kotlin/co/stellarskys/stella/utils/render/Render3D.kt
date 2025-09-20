@@ -431,6 +431,7 @@ object Render3D {
 
         GlStateManager.disableLighting()
         GlStateManager.enableBlend()
+        GlStateManager.enableDepth()
         GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         Tessellator.getInstance().worldRenderer // just to ensure class is loaded
 
@@ -463,11 +464,11 @@ object Render3D {
             fr.drawString(line, -cleanWidth / 2f, i * 9f, 0xFFFFFF, shadow)
         }
 
-        if (phase) GlStateManager.enableDepth()
         if (renderBackground) GlStateManager.color(1f, 1f, 1f, 1f)
 
         GlStateManager.depthMask(true)
         GlStateManager.disableBlend()
+        GlStateManager.enableDepth()
         GlStateManager.enableLighting()
         GlStateManager.popMatrix()
     }

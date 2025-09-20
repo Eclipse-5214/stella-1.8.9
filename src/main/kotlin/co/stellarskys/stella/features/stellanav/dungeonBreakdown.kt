@@ -45,7 +45,7 @@ object dungeonBreakdown: Feature("dungeonBreakdown", "catacombs") {
         val visitedGreenNames = mutableSetOf<String>()
         val lore = StringBuilder()
 
-        fun formatRoomInfo(info: DungeonScanner.RoomClearInfo, checkColor: String): String {
+        fun formatRoomInfo(info: DungeonScanner.RoomClearInfo, checkColor: String, isLast: Boolean = false): String {
             val room = info.room
             val name = if (room.name == "Default") room.shape else room.name ?: room.shape
             val type = typeToName(room.type)
@@ -53,26 +53,35 @@ object dungeonBreakdown: Feature("dungeonBreakdown", "catacombs") {
             val time = info.time
 
             val stackStr = if (info.solo) "" else {
-                val others = room.players.filter { it.name != player.name }.joinToString(" ") { it.name }
-                ", Stacked with $others"
+                val others = room.players
+                    .filter { it.name != player.name }
+                    .map { it.name }
+
+                if (others.isEmpty()) "."
+                else ", Stacked with ${others.joinToString(", ")}."
             }
 
-            return "§$color$name ($type) [§$checkColor✔§$color] in ${time}s$stackStr\n"
+            val line = "§$color$name §7(§$color$type§7) §7[§$checkColor✔§7]§$color in ${time}s$stackStr"
+            return if (isLast) line else "$line\n"
         }
+
+        val allRooms = mutableListOf<DungeonScanner.RoomClearInfo>()
 
         for ((_, info) in greenRooms) {
-            if (info.solo) player.minRooms++
-            player.maxRooms++
-            visitedGreenNames += info.room.name!!
-            lore.append(formatRoomInfo(info, "a")) // green checkmark
+            allRooms += info
+        }
+        for ((_, info) in whiteRooms) {
+            if (info.room.name !in visitedGreenNames) {
+                allRooms += info
+            }
         }
 
-        for ((_, info) in whiteRooms) {
-            val roomName = info.room.name
-            if (roomName in visitedGreenNames) continue
+        allRooms.forEachIndexed { i, info ->
             if (info.solo) player.minRooms++
             player.maxRooms++
-            lore.append(formatRoomInfo(info, "f")) // white checkmark
+
+            val checkColor = if (info.room.name in visitedGreenNames) "a" else "f"
+            lore.append(formatRoomInfo(info, checkColor, isLast = i == allRooms.lastIndex))
         }
 
         return lore.toString()

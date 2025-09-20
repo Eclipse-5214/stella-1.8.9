@@ -27,7 +27,6 @@ object ChromaShader {
 
     fun bind() {
         GL20.glUseProgram(programId)
-
     }
 
     fun unbind() {
@@ -81,5 +80,4 @@ object ChromaShader {
             return it.readText()
         }
     }
-
 }
