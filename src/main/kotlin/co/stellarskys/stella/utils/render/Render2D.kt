@@ -5,10 +5,12 @@ import co.stellarskys.stella.utils.CompatHelpers.DrawContext
 import co.stellarskys.stella.utils.clearCodes
 import net.minecraft.client.gui.Gui
 import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.client.renderer.RenderHelper
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.texture.SimpleTexture
 import net.minecraft.client.renderer.texture.TextureManager
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
+import net.minecraft.item.ItemStack
 import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
 import java.awt.Color
@@ -111,6 +113,15 @@ object Render2D {
         if (scale != 1f) GlStateManager.popMatrix()
     }
 
+    fun renderItem(item: ItemStack, x: Float, y: Float, scale: Float) {
+        GlStateManager.pushMatrix()
+        GlStateManager.translate(x, y, 0f)
+        GlStateManager.scale(scale, scale, 1f)
+        RenderHelper.enableGUIStandardItemLighting()
+        mc.renderItem.renderItemAndEffectIntoGUI(item, 0, 0)
+        RenderHelper.disableStandardItemLighting()
+        GlStateManager.popMatrix()
+    }
 
     fun String.width(): Int {
         val lines = split('\n')

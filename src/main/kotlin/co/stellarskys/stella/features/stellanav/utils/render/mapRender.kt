@@ -6,6 +6,7 @@ import co.stellarskys.stella.features.stellanav.utils.prevewMap
 import co.stellarskys.stella.utils.CompatHelpers.UDrawContext
 import co.stellarskys.stella.utils.render.Render2D
 import co.stellarskys.stella.utils.render.Render2D.width
+import co.stellarskys.stella.utils.skyblock.NEUApi
 import co.stellarskys.stella.utils.skyblock.dungeons.Dungeon
 
 object mapRender {
@@ -87,6 +88,8 @@ object mapRender {
         h += if (mapInfoUnder) 10 else 0
 
         Render2D.drawRect(context, 0, 0, w, h, mapConfig.mapBgColor)
+
+        renderTestNeuItem()
     }
 
     fun renderMapBorder(context: UDrawContext) {
@@ -105,5 +108,12 @@ object mapRender {
 
         // Right border
         Render2D.drawRect(context, w, 0, borderWidth, h, color)
+    }
+
+    fun renderTestNeuItem() {
+        val item = NEUApi.getItemBySkyblockId("ASPECT_OF_THE_END") ?: return
+        val stack = NEUApi.createDummyStack(item)
+
+        Render2D.renderItem(stack, 142f, 0f, 1f)
     }
 }
