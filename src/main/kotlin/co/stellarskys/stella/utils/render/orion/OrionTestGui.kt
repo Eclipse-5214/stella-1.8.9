@@ -10,23 +10,26 @@ class OrionTestGui : GuiScreen() {
 
     override fun initGui() {
         window = UIWindow {
-            val panel = UIRectangle(Color(0,0,0,0), 5f, Palette.Purple, 2f) {
+            val panel = UIRectangle(Color(0,0,0), 5f, Palette.Purple, 2f) {
                 width = 200f
                 height = 100f
                 x = UIConstraint.Center
                 y = UIConstraint.Center
             } childOf this
 
-            val textbox = UIRectangle(Color(0,0,0)) {
-                width = 180f
+            val xThing = UIRectangle(Color(0,0,0), 5f, Palette.Purple, 2f) {
+                width = 20f
                 height = 20f
-                x = UIConstraint.Relative(10f)
+                x = UIConstraint.Relative(10f, true)
                 y = UIConstraint.Relative(10f)
             } childOf panel
 
-            val label = UIText("Hello, Orion!") {
-                width = 180f
-                height = 20f
+            val xButton = UIText("X") {
+                x = UIConstraint.Center
+                y = UIConstraint.Center
+            } childOf panel
+
+            val label = UIText("Edit Button") {
                 x = UIConstraint.Relative(10f)
                 y = UIConstraint.Relative(10f)
             } childOf panel
