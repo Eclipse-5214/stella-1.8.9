@@ -167,11 +167,6 @@ tasks.shadowJar {
     fun relocate(name: String) = relocate(name, "$baseGroup.deps.$name")
     relocate("gg.essential.elementa")
     relocate("gg.essential.universal")
-    relocate("org.lwjgl")
-    relocate("org.lwjgl.system")
-    relocate("org.lwjgl.nanovg")
-    relocate("org.lwjgl.stb")
 }
 
 tasks.assemble.get().dependsOn(tasks.remapJar)
-
