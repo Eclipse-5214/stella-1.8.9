@@ -113,9 +113,6 @@ object ButtonManager {
             AnchorType.PLAYER_MODEL_BOTTOM_RIGHT ->
                 invX + 58 to invY + 58
 
-            // Fallback
-            else -> screenWidth / 2 to screenHeight / 2
         }
     }
-
 }

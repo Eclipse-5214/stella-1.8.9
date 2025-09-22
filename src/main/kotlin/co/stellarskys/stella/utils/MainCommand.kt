@@ -4,6 +4,7 @@ import co.stellarskys.stella.Stella
 import co.stellarskys.stella.Stella.Companion.mc
 import co.stellarskys.stella.features.msc.buttonUtils.ButtonLayoutEditor
 import co.stellarskys.stella.hud.HUDEditor
+import co.stellarskys.stella.utils.render.orion.OrionTestGui
 import co.stellarskys.stella.utils.skyblock.dungeons.Dungeon
 import co.stellarskys.stella.utils.skyblock.dungeons.DungeonScanner
 import net.minecraft.command.ICommandSender
@@ -28,6 +29,13 @@ object MainCommand: CommandUtils(
                 "buttons" -> {
                     TickUtils.schedule(1) {
                         mc.displayGuiScreen(ButtonLayoutEditor())
+                    }
+                    return
+                }
+
+                "test" -> {
+                    TickUtils.schedule(1) {
+                        mc.displayGuiScreen(OrionTestGui())
                     }
                     return
                 }

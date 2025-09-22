@@ -1,5 +1,6 @@
 package co.stellarskys.stella.features.msc.buttonUtils
 
+import co.stellarskys.stella.Stella
 import co.stellarskys.stella.utils.render.Render2D
 import co.stellarskys.stella.utils.render.nanoVG.Color
 import co.stellarskys.stella.utils.render.nanoVG.NVGRenderer
@@ -48,6 +49,9 @@ class ButtonLayoutEditor : GuiScreen() {
         }
 
         NVGRenderer.endFrame()
+
+        EditButtonPopup.render()
+
         super.drawScreen(mouseX, mouseY, partialTicks)
     }
 
@@ -55,11 +59,12 @@ class ButtonLayoutEditor : GuiScreen() {
         val invX = (width - 176) / 2
         val invY = (height - 166) / 2
 
-        for (anchor in AnchorType.values()) {
+        for (anchor in AnchorType.entries) {
             for (index in 0 until previewSlotsPerAnchor) {
                 val (x, y) = ButtonManager.resolveAnchorPosition(anchor, index, invX, invY)
                 if (mouseX in x..(x + slotSize) && mouseY in y..(y + slotSize)) {
                     // Open your NVG popup editor for this slot
+                    Stella.LOGGER.info("opening button popup")
                     EditButtonPopup.open(anchor, index)
                     return
                 }

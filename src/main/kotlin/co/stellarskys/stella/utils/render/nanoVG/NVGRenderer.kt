@@ -35,9 +35,9 @@ object NVGRenderer : Lwjgl3Wrapper by Lwjgl3Loader.load() {
 
     private fun getInputStream(): Font {
         try {
-            return Font("Default", mc.resourceManager.getResource(ResourceLocation("zen:font.ttf")).inputStream)
+            return Font("Default", mc.resourceManager.getResource(ResourceLocation("stella:font.ttf")).inputStream)
         } catch (_: Exception) { }
-        return Font("Default", "/assets/zen/font.ttf")
+        return Font("Default", "/assets/stella/font.ttf")
     }
 
     private val fontMap = HashMap<Font, NVGFont>()
@@ -191,6 +191,7 @@ object NVGRenderer : Lwjgl3Wrapper by Lwjgl3Loader.load() {
     fun text(text: String, x: Float, y: Float, size: Float, color: Int, font: Font) {
         nvgFontSize(vg, size)
         nvgFontFaceId(vg, getFontID(font))
+        nvgTextAlign(vg, NVG_ALIGN_LEFT or NVG_ALIGN_RIGHT)
         color(color)
         nvgFillColor(vg, nvgColor)
         nvgText(vg, round(x), round(y + 0.5f), text)
