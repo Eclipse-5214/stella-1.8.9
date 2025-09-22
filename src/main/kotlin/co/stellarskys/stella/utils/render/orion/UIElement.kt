@@ -39,7 +39,12 @@ abstract class UIElement {
 
     open fun applyConstraints(previousSibling: UIElement?, screenWidth: Int, screenHeight: Int) {
         resolvedX = when (val c = xConstraint) {
-            is UIConstraint.Relative -> (parent?.resolvedX ?: 0f) + c.offset
+            is UIConstraint.Relative -> {
+                val baseX = parent?.resolvedX ?: 0f
+                val baseW = parent?.width ?: screenWidth.toFloat()
+                if (c.fromEnd) baseX + baseW - width - c.offset
+                else baseX + c.offset
+            }
             is UIConstraint.Absolute -> c.position
             is UIConstraint.Sibling -> previousSibling?.resolvedX?.plus(previousSibling.width)?.plus(c.offset) ?: 0f
             UIConstraint.Center -> {
@@ -50,7 +55,12 @@ abstract class UIElement {
         }
 
         resolvedY = when (val c = yConstraint) {
-            is UIConstraint.Relative -> (parent?.resolvedY ?: 0f) + c.offset
+            is UIConstraint.Relative -> {
+                val baseY = parent?.resolvedY ?: 0f
+                val baseH = parent?.height ?: screenHeight.toFloat()
+                if (c.fromEnd) baseY + baseH - height - c.offset
+                else baseY + c.offset
+            }
             is UIConstraint.Absolute -> c.position
             is UIConstraint.Sibling -> previousSibling?.resolvedY?.plus(previousSibling.height)?.plus(c.offset) ?: 0f
             UIConstraint.Center -> {

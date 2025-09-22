@@ -1,5 +1,6 @@
 package co.stellarskys.stella.utils.render.orion
 
+import co.stellarskys.stella.utils.config.ui.Palette
 import co.stellarskys.stella.utils.render.orion.elements.*
 import net.minecraft.client.gui.GuiScreen
 import java.awt.Color
@@ -9,7 +10,7 @@ class OrionTestGui : GuiScreen() {
 
     override fun initGui() {
         window = UIWindow {
-            val panel = UIRectangle(Color(32, 32, 32)) {
+            val panel = UIRectangle(Color(0,0,0,0), 5f, Palette.Purple, 2f) {
                 width = 200f
                 height = 100f
                 x = UIConstraint.Center
