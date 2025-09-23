@@ -10,14 +10,14 @@ class OrionTestGui : GuiScreen() {
 
     override fun initGui() {
         window = UIWindow {
-            val panel = UIRectangle(Color(0,0,0), 5f, Palette.Purple, 2f) {
-                width = 200f
-                height = 100f
+            val panel = UIRectangle(Color(0,0,0), 5f, Palette.Purple, 1f) {
+                width = 300f
+                height = 200f
                 x = UIConstraint.Center
                 y = UIConstraint.Center
             } childOf this
 
-            val xThing = UIRectangle(Color(0,0,0), 5f, Palette.Purple, 2f) {
+            val xThing = UIRectangle(Color(0,0,0), 5f, Palette.Purple, 1f) {
                 width = 20f
                 height = 20f
                 x = UIConstraint.Relative(10f, true)
@@ -26,13 +26,35 @@ class OrionTestGui : GuiScreen() {
 
             val xButton = UIText("X") {
                 x = UIConstraint.Center
-                y = UIConstraint.Center
-            } childOf panel
+                y = UIConstraint.Relative(1f)
+            } childOf xThing
 
             val label = UIText("Edit Button") {
                 x = UIConstraint.Relative(10f)
                 y = UIConstraint.Relative(10f)
             } childOf panel
+
+            val itemPreview = UIRectangle(Color(0,0,0), 5f, Palette.Purple, 1f) {
+                width = 50f
+                height = 50f
+                x = UIConstraint.Relative(10f)
+                y = UIConstraint.Relative(40f)
+            } childOf panel
+
+            val itemIdBox = UIRectangle(Color(0,0,0), 5f, Palette.Purple, 1f) {
+                width = 250f
+                height = 20f
+                x = UIConstraint.Center
+                y = UIConstraint.Relative(70f)
+            } childOf panel
+
+            val commandBox = UIRectangle(Color(0,0,0), 5f, Palette.Purple, 1f) {
+                width = 250f
+                height = 20f
+                x = UIConstraint.Center
+                y = UIConstraint.Relative(110f)
+            } childOf panel
+
         }
     }
 

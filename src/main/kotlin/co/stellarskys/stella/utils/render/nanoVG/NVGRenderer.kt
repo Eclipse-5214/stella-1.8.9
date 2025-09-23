@@ -215,6 +215,16 @@ object NVGRenderer : Lwjgl3Wrapper by Lwjgl3Loader.load() {
         return nvgTextBounds(vg, 0f, 0f, text, fontBounds)
     }
 
+    fun textHeight(text: String, size: Float, font: Font): Float {
+        nvgFontSize(vg, size)
+        nvgFontFaceId(vg, getFontID(font))
+
+        val bounds = FloatArray(4)
+        nvgTextBounds(vg, 0f, 0f, text, bounds)
+
+        return bounds[3] - bounds[1] // bottom - top
+    }
+
     fun drawWrappedString(text: String, x: Float, y: Float, w: Float, size: Float, color: Int, font: Font, lineHeight: Float = 1f) {
         nvgFontSize(vg, size)
         nvgFontFaceId(vg, getFontID(font))

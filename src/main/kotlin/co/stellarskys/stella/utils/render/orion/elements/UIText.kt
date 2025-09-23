@@ -11,11 +11,15 @@ class UIText(
     val shadow: Boolean = false,
     init: UIText.() -> Unit
 ) : UIElement() {
-    init { this.init() }
+    init {
+        width = NVGRenderer.textWidth(text, fontSize, NVGRenderer.defaultFont)
+        height = NVGRenderer.textHeight(text, fontSize, NVGRenderer.defaultFont)
+        this.init()
+    }
 
     override fun render() {
         val textX = xPos
-        val textY = yPos + height / 2f
+        val textY = yPos + NVGRenderer.textHeight(text, fontSize, NVGRenderer.defaultFont)
 
         if (shadow) {
             NVGRenderer.textShadow(
