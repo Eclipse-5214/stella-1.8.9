@@ -6,7 +6,7 @@ plugins {
     id("gg.essential.loom") version "0.10.0.+"
     id("dev.architectury.architectury-pack200") version "0.1.3"
     id("com.github.johnrengelman.shadow") version "8.1.1"
-    kotlin("jvm") version "2.0.0"
+    kotlin("jvm") version "2.2.0"
 }
 
 //Constants:
@@ -44,6 +44,7 @@ loom {
         }
         remove(getByName("server"))
     }
+
     forge {
         pack200Provider.set(dev.architectury.pack200.java.Pack200Adapter())
         // If you don't want mixins, remove this lines
@@ -57,6 +58,10 @@ loom {
     mixin {
         defaultRefmapName.set("mixins.$modid.refmap.json")
     }
+}
+
+tasks.named("runClient") {
+    dependsOn("devInstallShadedMod")
 }
 
 tasks.compileJava {
@@ -73,10 +78,13 @@ sourceSets.main {
 
 repositories {
     mavenCentral()
+    mavenLocal()
     maven("https://repo.spongepowered.org/maven/")
     maven("https://repo.essential.gg/repository/maven-public")
     // If you don't want to log in with your real minecraft account, remove this line
     maven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1")
+    maven("https://maven.deftu.dev/snapshots")
+    maven("https://maven.deftu.dev/releases")
 }
 
 val shadowImpl: Configuration by configurations.creating {
@@ -103,6 +111,7 @@ dependencies {
     shadowImpl("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
 
     shadowImpl("com.github.odtheking:odin-lwjgl:68de0d3e0b")
+    shadowImpl("xyz.meowing:vexel-1.8.9-forge:1.0.5")
 
     // If you don't want to log in with your real minecraft account, remove this line
     runtimeOnly("me.djtheredstoner:DevAuth-forge-legacy:1.2.1")
@@ -170,3 +179,9 @@ tasks.shadowJar {
 }
 
 tasks.assemble.get().dependsOn(tasks.remapJar)
+
+tasks.register<Copy>("devInstallShadedMod") {
+    dependsOn(tasks.remapJar) // ensures remapJar (built from shadowJar) runs first
+    from(tasks.remapJar.get().archiveFile)
+    into(layout.projectDirectory.dir("run/mods"))
+}

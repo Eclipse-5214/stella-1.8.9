@@ -2,7 +2,7 @@ package co.stellarskys.stella.features.msc.buttonUtils
 
 import co.stellarskys.stella.Stella
 import co.stellarskys.stella.utils.render.Render2D
-import co.stellarskys.stella.utils.render.nanoVG.NVGRenderer
+import co.stellarskys.stella.utils.render.NVGRenderer
 import co.stellarskys.stella.utils.skyblock.NEUApi
 import net.minecraft.client.gui.ScaledResolution
 

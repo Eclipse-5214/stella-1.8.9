@@ -48,7 +48,6 @@ class Door(val worldPos: Pair<Int, Int>, val componentPos: Pair<Int, Int>) {
         val id = WorldUtils.getBlockNumericId(x, y, z)
 
         if (id == 0 || id == 166) return
-        println("Checking door type at ($x, $y, $z) id: $id")
 
         type = when (id) {
             97  -> DoorType.ENTRANCE

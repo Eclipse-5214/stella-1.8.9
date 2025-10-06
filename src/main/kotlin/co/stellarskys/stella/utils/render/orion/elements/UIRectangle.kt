@@ -1,7 +1,8 @@
 package co.stellarskys.stella.utils.render.orion.elements
 
+import co.stellarskys.stella.utils.render.NVGRenderer
 import co.stellarskys.stella.utils.render.orion.UIElement
-import co.stellarskys.stella.utils.render.nanoVG.NVGRenderer
+
 import java.awt.Color
 
 class UIRectangle(

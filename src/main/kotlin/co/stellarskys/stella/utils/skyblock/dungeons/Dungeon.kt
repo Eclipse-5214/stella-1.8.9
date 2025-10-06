@@ -295,14 +295,6 @@ object Dungeon {
                                 currentClass = className
                                 currentLevel = decodeRoman(classLevel)
                             }
-
-                            players.toList()
-                                .sortedWith(
-                                    compareBy<Pair<String, PlayerInfo>> { it.first.equals(player.name.string, ignoreCase = true) }
-                                        .thenBy { it.first.lowercase() }
-                                )
-                                .toMap(LinkedHashMap())
-                                .toMutableMap()
                         }
                     }
                 }
@@ -395,8 +387,6 @@ object Dungeon {
                 DungeonScanner.players.find { it.name == name}?.apply { deaths ++ }
                 return@register
             }
-
-
         })
 
         EventBus.register<AreaEvent.Main> ({

@@ -17,6 +17,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiMainMenu
 import net.minecraft.client.gui.inventory.GuiInventory
 import org.apache.logging.log4j.LogManager
+import xyz.meowing.vexel.Vexel
 
 @Mod(modid = "stella", version = "1.0.0", useMetadata = true, clientSideOnly = true)
 class Stella {
@@ -31,6 +32,8 @@ class Stella {
 
     @EventHandler
     fun onInitializeClient(event: FMLInitializationEvent) {
+        Vexel.init()
+
         EventBus.post(GameEvent.Load())
 
         init()

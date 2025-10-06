@@ -41,7 +41,6 @@ object DungeonScanner {
         // checking player states
         checkPlayerState()
 
-
         val (x, z) = realCoordToComponent(player.x.toInt(), player.z.toInt())
         val idx = 6 * z + x
 
@@ -299,7 +298,6 @@ object DungeonScanner {
                 if (players.size == 1) player.minRooms++
                 player.maxRooms++
             }
-
 
             val colorKey = if (isGreen) "GREEN" else "WHITE"
             val clearedMap = player.clearedRooms[colorKey]

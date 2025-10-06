@@ -1,8 +1,9 @@
 package co.stellarskys.stella.utils.render.orion.elements
 
-import co.stellarskys.stella.utils.render.nanoVG.Color
-import co.stellarskys.stella.utils.render.nanoVG.NVGRenderer
+
+import co.stellarskys.stella.utils.render.NVGRenderer
 import co.stellarskys.stella.utils.render.orion.UIElement
+import xyz.meowing.vexel.utils.style.Color
 
 class UIText(
     val text: String,
@@ -13,13 +14,13 @@ class UIText(
 ) : UIElement() {
     init {
         width = NVGRenderer.textWidth(text, fontSize, NVGRenderer.defaultFont)
-        height = NVGRenderer.textHeight(text, fontSize, NVGRenderer.defaultFont)
+        height = fontSize
         this.init()
     }
 
     override fun render() {
         val textX = xPos
-        val textY = yPos + NVGRenderer.textHeight(text, fontSize, NVGRenderer.defaultFont)
+        val textY = yPos + fontSize
 
         if (shadow) {
             NVGRenderer.textShadow(

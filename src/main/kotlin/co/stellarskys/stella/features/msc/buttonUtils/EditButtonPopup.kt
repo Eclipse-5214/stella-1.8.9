@@ -1,7 +1,7 @@
 package co.stellarskys.stella.features.msc.buttonUtils
 
 import co.stellarskys.stella.Stella.Companion.mc
-import co.stellarskys.stella.utils.render.nanoVG.NVGRenderer
+import co.stellarskys.stella.utils.render.NVGRenderer
 import net.minecraft.client.gui.ScaledResolution
 import java.awt.Color
 

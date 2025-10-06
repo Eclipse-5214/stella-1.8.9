@@ -1,7 +1,7 @@
 package co.stellarskys.stella.utils.render.orion.elements
 
 import co.stellarskys.stella.Stella.Companion.mc
-import co.stellarskys.stella.utils.render.nanoVG.NVGRenderer
+import co.stellarskys.stella.utils.render.NVGRenderer
 import co.stellarskys.stella.utils.render.orion.UIElement
 import net.minecraft.client.gui.ScaledResolution
 
