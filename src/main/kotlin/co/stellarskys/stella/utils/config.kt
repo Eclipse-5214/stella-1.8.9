@@ -1,5 +1,7 @@
 package co.stellarskys.stella.utils
 
+import co.stellarskys.stella.Stella
+import co.stellarskys.stella.features.msc.buttonUtils.ButtonLayoutEditor
 import co.stellarskys.stella.utils.config.core.Config
 
 val config = Config("Stella", "Stella") {
@@ -504,6 +506,25 @@ val config = Config("Stella", "Stella") {
                 step = 1
                 default = 3
                 shouldShow { settings -> settings["overlayEnabled"] as Boolean }
+            }
+        }
+
+        subcategory("Inventory Buttons"){
+            toggle {
+                configName = "buttonsEnabled"
+                name = "Enabled"
+                description = "Enables the inventory buttons"
+            }
+
+            button {
+                configName = "buttonEdit"
+                name = "Inventory Button Editor"
+                description = "Opens the inventory button editor"
+                placeholder = "Open"
+
+                onclick {
+                    Stella.mc.displayGuiScreen(ButtonLayoutEditor())
+                }
             }
         }
     }

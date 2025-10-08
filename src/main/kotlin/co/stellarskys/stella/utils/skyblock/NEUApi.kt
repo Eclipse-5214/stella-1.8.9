@@ -117,7 +117,7 @@ object NEUApi {
 
         newETag?.let {
             etagFile.writeText(it)
-            Stella.LOGGER.info("Saved new ETag: $it")
+            Stella.LOGGER.debug("Saved new ETag: $it")
         }
     }
 

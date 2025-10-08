@@ -25,13 +25,9 @@ enum class AnchorType(val slots: Int) {
 }
 
 data class StellaButton(
-    val id: String,
-    val iconId: String,
-    val command: String,
+    var iconId: String,
+    var command: String,
     val anchor: AnchorType,
     val index: Int = 0,
-    val offsetX: Int = 0,
-    val offsetY: Int = 0,
-    val scale: Float = 1f,
     val background: Boolean = true
 )
