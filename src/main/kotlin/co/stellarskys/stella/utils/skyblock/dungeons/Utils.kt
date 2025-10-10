@@ -20,10 +20,10 @@ object RoomRegistry {
             url = ROOM_DATA_URL,
             onSuccess = { rooms ->
                 populateRooms(rooms)
-                println("RoomRegistry: Loaded ${rooms.size} rooms from Skytils")
+                Stella.LOGGER.info("RoomRegistry: Loaded ${rooms.size} rooms from Skytils")
             },
             onError = { error ->
-                println("RoomRegistry: Failed to load room data — ${error.message}")
+                Stella.LOGGER.error("RoomRegistry: Failed to load room data — ${error.message}")
                 loadFromLocal()
             }
         )
@@ -37,9 +37,9 @@ object RoomRegistry {
             val type = object : TypeToken<List<RoomMetadata>>() {}.type
             val rooms: List<RoomMetadata> = Gson().fromJson(json, type)
             populateRooms(rooms)
-            println("RoomRegistry: Loaded ${rooms.size} rooms from local config")
+            Stella.LOGGER.info("RoomRegistry: Loaded ${rooms.size} rooms from local config")
         }.onFailure {
-            println("RoomRegistry: Failed to load local room data — ${it.message}")
+            Stella.LOGGER.error("RoomRegistry: Failed to load local room data — ${it.message}")
         }
     }
 

@@ -1,6 +1,5 @@
 package co.stellarskys.stella.utils.CompatHelpers
 
-import co.stellarskys.stella.Stella
 import net.minecraft.client.entity.EntityPlayerSP
 import net.minecraft.entity.player.EntityPlayer
 

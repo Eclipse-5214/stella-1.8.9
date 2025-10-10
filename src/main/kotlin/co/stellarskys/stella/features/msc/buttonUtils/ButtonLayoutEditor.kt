@@ -1,6 +1,5 @@
 package co.stellarskys.stella.features.msc.buttonUtils
 
-import co.stellarskys.stella.Stella
 import co.stellarskys.stella.utils.render.NVGRenderer
 import co.stellarskys.stella.utils.render.Render2D
 import co.stellarskys.stella.utils.skyblock.NEUApi
@@ -10,10 +9,6 @@ import xyz.meowing.vexel.core.VexelScreen
 class ButtonLayoutEditor : VexelScreen() {
     private val dummyInventoryTexture = ResourceLocation("textures/gui/container/inventory.png")
     private val slotSize = 20
-
-    // how many slots to preview per anchor group
-    private val previewSlotsPerAnchor = 5
-
     private val popup = EditButtonPopup(window)
 
     override fun drawScreen(mouseX: Int, mouseY: Int, partialTicks: Float) {
@@ -56,7 +51,6 @@ class ButtonLayoutEditor : VexelScreen() {
         NVGRenderer.endFrame()
 
         super.drawScreen(mouseX, mouseY, partialTicks)
-
         popup.renderPreviewItem()
     }
 
@@ -69,8 +63,6 @@ class ButtonLayoutEditor : VexelScreen() {
                 for (index in 0 until anchor.slots) {
                     val (x, y) = ButtonManager.resolveAnchorPosition(anchor, index, invX, invY)
                     if (mouseX in x..(x + slotSize) && mouseY in y..(y + slotSize)) {
-                        // Open your NVG popup editor for this slot
-                        Stella.LOGGER.info("opening button popup")
                         popup.open(anchor, index)
                         return
                     }

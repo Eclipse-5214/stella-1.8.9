@@ -3,18 +3,21 @@ package co.stellarskys.stella.features.msc.buttonUtils
 import co.stellarskys.stella.Stella
 import co.stellarskys.stella.utils.config.ui.Palette
 import co.stellarskys.stella.utils.render.Render2D
+import co.stellarskys.stella.utils.render.constrain.constrain
+import co.stellarskys.stella.utils.render.constrain.perc
+import co.stellarskys.stella.utils.render.constrain.plus
+import co.stellarskys.stella.utils.render.constrain.px
 import co.stellarskys.stella.utils.skyblock.NEUApi
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.init.Blocks
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
-import xyz.meowing.vexel.components.base.*
+import xyz.meowing.vexel.components.base.Pos
 import xyz.meowing.vexel.components.core.*
 import xyz.meowing.vexel.core.VexelWindow
 import xyz.meowing.vexel.elements.Button
 import xyz.meowing.vexel.elements.TextInput
 import java.awt.Color
-import kotlin.io.path.Path
 
 class EditButtonPopup(window: VexelWindow) {
     var activeAnchor: AnchorType? = null
@@ -35,8 +38,8 @@ class EditButtonPopup(window: VexelWindow) {
         .constrain {
             x = Pos.ScreenCenter + 0f
             y = Pos.ScreenCenter + 0f
-            width = percentParent(50f)
-            height = percentParent(50f)
+            width = 50f.perc
+            height = 50f.perc
         }
         .childOf(window)
         .hide()
@@ -90,7 +93,7 @@ class EditButtonPopup(window: VexelWindow) {
         .constrain {
             x = Pos.ParentCenter + 0f
             y = Pos.AfterSibling + 30f
-            width = percentParent(95f)
+            width = 95f.perc
         }
         .childOf(rect)
 
@@ -105,7 +108,7 @@ class EditButtonPopup(window: VexelWindow) {
         .constrain {
             x = Pos.ParentCenter + 0f
             y = Pos.AfterSibling + 30f
-            width = percentParent(95f)
+            width = 95f.perc
         }
         .childOf(rect)
 
@@ -153,7 +156,7 @@ class EditButtonPopup(window: VexelWindow) {
     fun renderPreviewItem() {
         if (!shown) return
 
-        val item = NEUApi.getItemBySkyblockId(itemIdInput.value)
+        val item = NEUApi.getItemBySkyblockId((itemIdInput as TextInput).value)
 
         val barrior = Item.getItemFromBlock(Blocks.barrier)
         var stack = ItemStack(barrior, 1)
@@ -180,8 +183,8 @@ class EditButtonPopup(window: VexelWindow) {
         itemId = existing?.iconId.orEmpty()
         command = existing?.command.orEmpty()
 
-        itemIdInput.value = itemId.takeIf { it.isNotBlank() } ?: itemIdInput.value
-        commandInput.value = command.takeIf { it.isNotBlank() } ?: commandInput.value
+        (itemIdInput as TextInput).value = itemId.takeIf { it.isNotBlank() } ?: itemIdInput.value
+        (commandInput as TextInput).value = command.takeIf { it.isNotBlank() } ?: commandInput.value
 
         rect.show()
         shown = true
@@ -198,11 +201,23 @@ class EditButtonPopup(window: VexelWindow) {
         val anchor = activeAnchor ?: return
         val index = activeIndex
 
+        itemIdInput as TextInput
+        commandInput as TextInput
+
         if (itemIdInput.value.isEmpty() || commandInput.value.isEmpty()) {
             ButtonManager.remove(anchor, index)
             close()
             return
         }
+
+        val noBackgroundAnchors = setOf(
+            AnchorType.PLAYER_MODEL_TOP_LEFT,
+            AnchorType.PLAYER_MODEL_TOP_RIGHT,
+            AnchorType.PLAYER_MODEL_BOTTOM_LEFT,
+            AnchorType.PLAYER_MODEL_BOTTOM_RIGHT
+        )
+
+        val background = anchor !in noBackgroundAnchors
 
         val existing = ButtonManager.getButtonAt(anchor, index)
 
@@ -215,7 +230,7 @@ class EditButtonPopup(window: VexelWindow) {
                 index = index,
                 iconId = itemIdInput.value,
                 command = commandInput.value,
-                background = true
+                background = background
             )
             ButtonManager.add(newButton)
         }
@@ -226,7 +241,6 @@ class EditButtonPopup(window: VexelWindow) {
     fun delete() {
         val anchor = activeAnchor ?: return
         val index = activeIndex
-
         ButtonManager.remove(anchor, index)
 
         close()

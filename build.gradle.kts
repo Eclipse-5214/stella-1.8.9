@@ -81,10 +81,9 @@ repositories {
     mavenLocal()
     maven("https://repo.spongepowered.org/maven/")
     maven("https://repo.essential.gg/repository/maven-public")
+    maven("https://maven.deftu.dev/releases")
     // If you don't want to log in with your real minecraft account, remove this line
     maven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1")
-    maven("https://maven.deftu.dev/snapshots")
-    maven("https://maven.deftu.dev/releases")
 }
 
 val shadowImpl: Configuration by configurations.creating {
@@ -109,9 +108,7 @@ dependencies {
     shadowImpl("gg.essential:universalcraft-1.8.9-forge:$ucVersion")
     shadowImpl("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2")
     shadowImpl("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
-
-    shadowImpl("com.github.odtheking:odin-lwjgl:68de0d3e0b")
-    shadowImpl("xyz.meowing:vexel-1.8.9-forge:1.0.5")
+    shadowImpl("xyz.meowing:vexel-1.8.9-forge:1.0.7")
 
     // If you don't want to log in with your real minecraft account, remove this line
     runtimeOnly("me.djtheredstoner:DevAuth-forge-legacy:1.2.1")

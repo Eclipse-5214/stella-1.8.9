@@ -178,7 +178,6 @@ object ButtonManager {
 
             val json = gson.toJson(buttons)
             buttonFile.writeText(json)
-            Stella.LOGGER.info("Saved ${buttons.size} buttons to ${buttonFile.name}")
         } catch (e: Exception) {
             Stella.LOGGER.error("Failed to save buttons", e)
         }
@@ -193,7 +192,6 @@ object ButtonManager {
             val loaded = gson.fromJson<List<StellaButton>>(buttonFile.readText(), type)
             buttons.clear()
             buttons.addAll(loaded)
-            Stella.LOGGER.info("Loaded ${buttons.size} buttons from ${buttonFile.name}")
         } catch (e: Exception) {
             Stella.LOGGER.error("Failed to load buttons", e)
         }

@@ -158,7 +158,10 @@ object Dungeon {
     init {
         EventBus.register<TablistEvent> {
             TickUtils.schedule(1) {
-                val playerName = Stella.mc.thePlayer?.name?.string
+                var playerName: String? = null
+
+                Stella.mc.thePlayer.let { playerName = it.name }
+
                 if (playerName == null) return@schedule
                 val self = players[playerName]
 
