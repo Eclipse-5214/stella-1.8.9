@@ -28,6 +28,12 @@ val config = Config("Stella", "Stella") {
                 name = "Show Room Name"
                 description = "Shows the current dungeon rooms name in a hud"
             }
+
+            toggle {
+                configName = "roomNameChroma"
+                name = "Chroma Room Name"
+                description = "Makes the room name chroma (Requires SBA or Skyhanni)"
+            }
         }
         
         subcategory("Terminals") {

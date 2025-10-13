@@ -8,6 +8,7 @@ import co.stellarskys.stella.utils.skyblock.dungeons.Dungeon
 import co.stellarskys.stella.utils.skyblock.dungeons.DungeonScanner
 import co.stellarskys.stella.utils.CompatHelpers.UDrawContext
 import co.stellarskys.stella.events.RenderEvent
+import co.stellarskys.stella.utils.config
 
 @Stella.Module
 object roomName : Feature("showRoomName", area = "catacombs") {
@@ -23,7 +24,9 @@ object roomName : Feature("showRoomName", area = "catacombs") {
         if (!HUDManager.isEnabled("roomname")) return
         if (Dungeon.inBoss()) return
 
-        val text = "§z${DungeonScanner.currentRoom?.name ?: "No Room Found"}"
+        val chroma = config["roomNameChroma"] as Boolean
+
+        val text = "${if (chroma) "§z" else ""}${DungeonScanner.currentRoom?.name ?: "No Room Found"}"
         val x = HUDManager.getX("roomname") + 5f
         val y = HUDManager.getY("roomname") + 5f
         val scale = HUDManager.getScale("roomname")
