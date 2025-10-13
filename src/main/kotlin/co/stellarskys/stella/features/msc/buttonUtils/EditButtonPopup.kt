@@ -3,16 +3,13 @@ package co.stellarskys.stella.features.msc.buttonUtils
 import co.stellarskys.stella.Stella
 import co.stellarskys.stella.utils.config.ui.Palette
 import co.stellarskys.stella.utils.render.Render2D
-import co.stellarskys.stella.utils.render.constrain.constrain
-import co.stellarskys.stella.utils.render.constrain.perc
-import co.stellarskys.stella.utils.render.constrain.plus
-import co.stellarskys.stella.utils.render.constrain.px
 import co.stellarskys.stella.utils.skyblock.NEUApi
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.init.Blocks
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import xyz.meowing.vexel.components.base.Pos
+import xyz.meowing.vexel.components.base.Size
 import xyz.meowing.vexel.components.core.*
 import xyz.meowing.vexel.core.VexelWindow
 import xyz.meowing.vexel.elements.Button
@@ -35,20 +32,13 @@ class EditButtonPopup(window: VexelWindow) {
         Palette.Purple.rgb,
         10f, 1f
     )
-        .constrain {
-            x = Pos.ScreenCenter + 0f
-            y = Pos.ScreenCenter + 0f
-            width = 50f.perc
-            height = 50f.perc
-        }
+        .setPositioning(Pos.ScreenCenter, Pos.ScreenCenter)
+        .setSizing(50f, Size.ParentPerc, 50f, Size.ParentPerc)
         .childOf(window)
         .hide()
 
     val popupTitle = Text("Edit Inventory Button", fontSize = 40f)
-        .constrain {
-            x = 20.px
-            y = 10.px
-        }
+        .setPositioning(20f, Pos.ParentPixels, 20f, Pos.ParentPixels)
         .childOf(rect)
 
     val closeX = Button(
@@ -58,10 +48,7 @@ class EditButtonPopup(window: VexelWindow) {
         fontSize = 24f
     )
         .setPositioning(90f, Pos.ParentPercent, 5f, Pos.ParentPercent)
-        .constrain {
-            width = 40.px
-            height = 40.px
-        }
+        .setSizing(40f, Size.Pixels, 40f, Size.Pixels)
         .onClick { _, _, _ ->
             close()
             true
@@ -74,12 +61,8 @@ class EditButtonPopup(window: VexelWindow) {
         Palette.Purple.rgb,
         10f, 1f
     )
-        .constrain {
-            x = 20.px
-            y = Pos.AfterSibling + 20f
-            width = 130.px
-            height = 130.px
-        }
+        .setPositioning(20f, Pos.ParentPixels, 20f, Pos.AfterSibling)
+        .setSizing(130f, Size.Pixels, 130f, Size.Pixels)
         .childOf(rect)
 
     val itemIdInput = TextInput(
@@ -90,11 +73,8 @@ class EditButtonPopup(window: VexelWindow) {
         borderRadius = 10f,
         borderThickness = 1f
     )
-        .constrain {
-            x = Pos.ParentCenter + 0f
-            y = Pos.AfterSibling + 30f
-            width = 95f.perc
-        }
+        .setPositioning(0f, Pos.ParentCenter, 30f, Pos.AfterSibling)
+        .setSizing(95f, Size.ParentPerc, 0f, Size.Auto)
         .childOf(rect)
 
     val commandInput = TextInput(
@@ -105,20 +85,8 @@ class EditButtonPopup(window: VexelWindow) {
         borderRadius = 10f,
         borderThickness = 1f
     )
-        .constrain {
-            x = Pos.ParentCenter + 0f
-            y = Pos.AfterSibling + 30f
-            width = 95f.perc
-        }
-        .childOf(rect)
-
-    val buttonWrapper = Rectangle()
-        .constrain {
-            width = 280.px
-            height = 40f.px
-            x = Pos.ParentCenter + 0f
-            y = Pos.AfterSibling + 30f
-        }
+        .setPositioning(0f, Pos.ParentCenter, 30f, Pos.AfterSibling)
+        .setSizing(95f, Size.ParentPerc, 0f, Size.Auto)
         .childOf(rect)
 
     val saveButton = Button(
@@ -126,40 +94,36 @@ class EditButtonPopup(window: VexelWindow) {
         backgroundColor = Palette.Green.rgb,
         fontSize = 24f
     )
-        .constrain {
-            x = 0.px
-            y = Pos.ParentCenter + 0f
-            width = 130.px
-        }
+        .setPositioning(0f, Pos.ParentCenter, 30f, Pos.AfterSibling)
+        .setSizing(130f, Size.Pixels, 0f, Size.Auto)
+        .setOffset(-70f, 0f)
         .onClick { _, _, _ ->
             save()
             true
         }
-        .childOf(buttonWrapper)
+        .childOf(rect)
 
     val deleteButton = Button(
         "delete",
         backgroundColor = Palette.Red.rgb,
         fontSize = 24f
     )
-        .constrain {
-            x = 150.px
-            y = Pos.ParentCenter + 0f
-            width = 130.px
-        }
+        .setPositioning(0f, Pos.ParentCenter, 0f, Pos.MatchSibling)
+        .setSizing(130f, Size.Pixels, 0f, Size.Auto)
+        .setOffset(70f, 0f)
         .onClick { _, _, _ ->
             delete()
             true
         }
-        .childOf(buttonWrapper)
+        .childOf(rect)
 
     fun renderPreviewItem() {
         if (!shown) return
 
-        val item = NEUApi.getItemBySkyblockId((itemIdInput as TextInput).value)
+        val item = NEUApi.getItemBySkyblockId(itemIdInput.value)
 
-        val barrior = Item.getItemFromBlock(Blocks.barrier)
-        var stack = ItemStack(barrior, 1)
+        val barrier = Item.getItemFromBlock(Blocks.barrier)
+        var stack = ItemStack(barrier, 1)
 
         if (item != null) {
             stack = NEUApi.createDummyStack(item)
@@ -168,8 +132,8 @@ class EditButtonPopup(window: VexelWindow) {
         val res = ScaledResolution(Stella.mc)
         val scale = res.scaleFactor.toFloat()
 
-        val x = itemPreview.x / scale
-        val y = itemPreview.y / scale
+        val x = itemPreview.scaled.left
+        val y = itemPreview.scaled.top
 
         Render2D.renderItem(stack, x + 5, y + 5, 7f / scale)
     }
@@ -183,8 +147,8 @@ class EditButtonPopup(window: VexelWindow) {
         itemId = existing?.iconId.orEmpty()
         command = existing?.command.orEmpty()
 
-        (itemIdInput as TextInput).value = itemId.takeIf { it.isNotBlank() } ?: itemIdInput.value
-        (commandInput as TextInput).value = command.takeIf { it.isNotBlank() } ?: commandInput.value
+        itemIdInput.value = itemId.takeIf { it.isNotBlank() } ?: itemIdInput.value
+        commandInput.value = command.takeIf { it.isNotBlank() } ?: commandInput.value
 
         rect.show()
         shown = true
@@ -193,6 +157,8 @@ class EditButtonPopup(window: VexelWindow) {
     fun close() {
         activeAnchor = null
         activeIndex = 0
+        itemIdInput.value = ""
+        commandInput.value = ""
         rect.hide()
         shown = false
     }
@@ -200,9 +166,6 @@ class EditButtonPopup(window: VexelWindow) {
     fun save() {
         val anchor = activeAnchor ?: return
         val index = activeIndex
-
-        itemIdInput as TextInput
-        commandInput as TextInput
 
         if (itemIdInput.value.isEmpty() || commandInput.value.isEmpty()) {
             ButtonManager.remove(anchor, index)
