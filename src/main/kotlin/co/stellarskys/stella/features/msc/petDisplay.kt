@@ -2,21 +2,18 @@ package co.stellarskys.stella.features.msc
 
 import co.stellarskys.stella.Stella
 import co.stellarskys.stella.events.ChatEvent
-import co.stellarskys.stella.events.RenderEvent
-import co.stellarskys.stella.events.WorldEvent
+import co.stellarskys.stella.events.TablistEvent
 import co.stellarskys.stella.features.Feature
-import co.stellarskys.stella.features.stellanav.utils.mapConfig
-import co.stellarskys.stella.utils.render.Render3D
-import co.stellarskys.stella.utils.skyblock.dungeons.DoorState
-import co.stellarskys.stella.utils.skyblock.dungeons.DoorType
-import co.stellarskys.stella.utils.skyblock.dungeons.DungeonScanner
 import co.stellarskys.stella.utils.clearCodes
 
 @Stella.Module
 object petDisplay: Feature("petDisplay") {
     val petSummon = Regex("""You (summoned|despawned) your ([A-Za-z ]+)(?: ✦)?!""")
     val autoPet = Regex("""Autopet equipped your \[Lvl (\d+)] ([A-Za-z ]+)(?: ✦)?! VIEW RULE""")
+    val tab = Regex("""\[Lvl (\d+)] ([A-Za-z ]+)(?: ✦)?""")
 
+    var activePet: String? = null
+    var activePetLvl = 0
 
     override fun initialize() {
         register<ChatEvent.Receive> { event ->
@@ -28,7 +25,17 @@ object petDisplay: Feature("petDisplay") {
                 val action = summonMatch.groupValues[1] // "summoned" or "despawned"
                 val petName = summonMatch.groupValues[2].trim()
                 Stella.LOGGER.info("Pet $action: $petName")
-                // You can trigger logic here, e.g. update state or log
+
+                when (action) {
+                    "summoned" -> {
+                        activePet = petName
+                    }
+                    "despawned" -> {
+                        activePet = null
+                    }
+                }
+
+
                 return@register
             }
 
@@ -38,8 +45,27 @@ object petDisplay: Feature("petDisplay") {
                 val level = autoMatch.groupValues[1].toInt()
                 val petName = autoMatch.groupValues[2].trim()
                 Stella.LOGGER.info("Autopet equipped: Lvl $level $petName")
+                activePet = petName
+                activePetLvl = level
+
                 // You can trigger logic here, e.g. update state or log
                 return@register
+            }
+        }
+
+        register<TablistEvent> { tabEvent ->
+            tabEvent.packet.entries.forEach { entry ->
+                val text = entry.displayName?.unformattedText?.clearCodes() ?: return@forEach
+
+                val tabMatch = tab.find(text)
+                if (tabMatch != null) {
+                    val level = tabMatch.groupValues[1].toInt()
+                    val petName = tabMatch.groupValues[2].trim()
+                    Stella.LOGGER.info("tablist equipped: Lvl $level $petName")
+                    activePet = petName
+                    activePetLvl = level
+
+                }
             }
         }
 
