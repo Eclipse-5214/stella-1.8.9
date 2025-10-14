@@ -156,7 +156,6 @@ public val config = Config("Stella", "Stella") {
                 name = "Cracked Brick Color"
                 description = "Color used for cracked stone bricks"
                 default = rgba(255, 0, 255, 255)
-                shouldShow { settings -> !(settings["disableCustomDungColours"] as Boolean) }
             }
 
             colorpicker {
@@ -164,7 +163,6 @@ public val config = Config("Stella", "Stella") {
                 name = "Dispenser Color"
                 description = "Color used for dispensers"
                 default = rgba(255, 255, 0, 255)
-                shouldShow { settings -> !(settings["disableCustomDungColours"] as Boolean) }
             }
 
             colorpicker {
@@ -172,7 +170,6 @@ public val config = Config("Stella", "Stella") {
                 name = "Lever Color"
                 description = "Color used for levers"
                 default = rgba(0, 255, 0, 255)
-                shouldShow { settings -> !(settings["disableCustomDungColours"] as Boolean) }
             }
 
             colorpicker {
@@ -180,7 +177,6 @@ public val config = Config("Stella", "Stella") {
                 name = "Tripwire Color"
                 description = "Color used for tripwires"
                 default = rgba(0, 255, 255, 255)
-                shouldShow { settings -> !(settings["disableCustomDungColours"] as Boolean) }
             }
 
             colorpicker {
@@ -188,7 +184,6 @@ public val config = Config("Stella", "Stella") {
                 name = "Bat Color"
                 description = "Color used for dungeon bats"
                 default = rgba(255, 100, 255, 255)
-                shouldShow { settings -> !(settings["disableCustomDungColours"] as Boolean) }
             }
 
             colorpicker {
@@ -196,7 +191,6 @@ public val config = Config("Stella", "Stella") {
                 name = "Chest Color"
                 description = "Color used for normal dungeon chests"
                 default = rgba(255, 150, 0, 255)
-                shouldShow { settings -> !(settings["disableCustomDungColours"] as Boolean) }
             }
 
             colorpicker {
@@ -204,7 +198,6 @@ public val config = Config("Stella", "Stella") {
                 name = "Trapped Chest Color"
                 description = "Color used for trapped dungeon chests"
                 default = rgba(255, 0, 0, 255)
-                shouldShow { settings -> !(settings["disableCustomDungColours"] as Boolean) }
             }
         }
 
