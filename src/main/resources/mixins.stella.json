@@ -6,6 +6,10 @@
   "client": [
     "accessors.AccessorNetHandlerPlayClient",
     "MixinNetworkManager",
-    "MixinInventoryEffectRenderer"
+    "MixinInventoryEffectRenderer",
+    "MixinTileEntitySpecialRenderer",
+    "MixinVboRenderList",
+    "MixinRenderList",
+    "MixinRender"
   ]
 }

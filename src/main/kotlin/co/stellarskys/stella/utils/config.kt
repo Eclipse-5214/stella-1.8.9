@@ -4,7 +4,7 @@ import co.stellarskys.stella.Stella
 import co.stellarskys.stella.features.msc.buttonUtils.ButtonLayoutEditor
 import co.stellarskys.stella.utils.config.core.Config
 
-val config = Config("Stella", "Stella") {
+public val config = Config("Stella", "Stella") {
     category("General"){
         subcategory("info") {
             textparagraph {
@@ -35,7 +35,7 @@ val config = Config("Stella", "Stella") {
                 description = "Makes the room name chroma (Requires SBA or Skyhanni)"
             }
         }
-        
+
         subcategory("Terminals") {
             toggle {
                 configName = "termNumbers"
@@ -132,6 +132,79 @@ val config = Config("Stella", "Stella") {
                 name = "Terminal Tracker"
                 description = "Tracks terminals, devices, and levers"
                 default = false
+            }
+        }
+
+        subcategory("Block Overlay") {
+            toggle {
+                configName = "enableDungBlockOverlay"
+                name = "Enable Block Overlay"
+                description = "Replaces dungeon block textures with colored overlays"
+                default = true
+            }
+
+            toggle {
+                configName = "dungeonBlocksEverywhere"
+                name = "Render Outside Dungeons"
+                description = "Shows block overlays even outside of dungeons"
+                default = false
+                shouldShow { settings -> settings["enableDungBlockOverlay"] as Boolean }
+            }
+
+            colorpicker {
+                configName = "dungCrackedColour"
+                name = "Cracked Brick Color"
+                description = "Color used for cracked stone bricks"
+                default = rgba(255, 0, 255, 255)
+                shouldShow { settings -> !(settings["disableCustomDungColours"] as Boolean) }
+            }
+
+            colorpicker {
+                configName = "dungDispenserColour"
+                name = "Dispenser Color"
+                description = "Color used for dispensers"
+                default = rgba(255, 255, 0, 255)
+                shouldShow { settings -> !(settings["disableCustomDungColours"] as Boolean) }
+            }
+
+            colorpicker {
+                configName = "dungLeverColour"
+                name = "Lever Color"
+                description = "Color used for levers"
+                default = rgba(0, 255, 0, 255)
+                shouldShow { settings -> !(settings["disableCustomDungColours"] as Boolean) }
+            }
+
+            colorpicker {
+                configName = "dungTripWireColour"
+                name = "Tripwire Color"
+                description = "Color used for tripwires"
+                default = rgba(0, 255, 255, 255)
+                shouldShow { settings -> !(settings["disableCustomDungColours"] as Boolean) }
+            }
+
+            colorpicker {
+                configName = "dungBatColour"
+                name = "Bat Color"
+                description = "Color used for dungeon bats"
+                default = rgba(255, 100, 255, 255)
+                shouldShow { settings -> !(settings["disableCustomDungColours"] as Boolean) }
+            }
+
+            colorpicker {
+                configName = "dungChestColour"
+                name = "Chest Color"
+                description = "Color used for normal dungeon chests"
+                default = rgba(255, 150, 0, 255)
+                shouldShow { settings -> !(settings["disableCustomDungColours"] as Boolean) }
+            }
+
+            colorpicker {
+                configName = "dungTrappedChestColour"
+                name = "Trapped Chest Color"
+                description = "Color used for trapped dungeon chests"
+                default = rgba(255, 0, 0, 255)
+                shouldShow { settings -> !(settings["disableCustomDungColours"] as Boolean) }
             }
         }
 

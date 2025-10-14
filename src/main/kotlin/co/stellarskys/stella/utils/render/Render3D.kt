@@ -1,22 +1,17 @@
 package co.stellarskys.stella.utils.render
 
 import co.stellarskys.stella.Stella
-import net.minecraft.block.Block
-import net.minecraft.block.BlockCauldron
-import net.minecraft.block.BlockFence
-import net.minecraft.block.BlockFenceGate
-import net.minecraft.block.BlockHopper
-import net.minecraft.block.BlockWall
+import net.minecraft.block.*
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
-import net.minecraft.init.Blocks
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.BlockPos
 import org.lwjgl.opengl.GL11.*
 import java.awt.Color
 import kotlin.math.hypot
+
 
 object Render3D {
     private val renderManager = Stella.mc.renderManager
@@ -479,5 +474,76 @@ object Render3D {
                 block is BlockWall ||
                 block is BlockHopper ||
                 block is BlockCauldron
+    }
+
+    fun drawTexturedRectNoBlend(
+        x: Float,
+        y: Float,
+        width: Float,
+        height: Float,
+        uMin: Float,
+        uMax: Float,
+        vMin: Float,
+        vMax: Float,
+        filter: Int
+    ) {
+        GlStateManager.enableTexture2D()
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter)
+
+        val tessellator = Tessellator.getInstance()
+        val worldrenderer = tessellator.worldRenderer
+        worldrenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION_TEX)
+        worldrenderer
+            .pos(x.toDouble(), (y + height).toDouble(), 0.0)
+            .tex(uMin.toDouble(), vMax.toDouble()).endVertex()
+        worldrenderer
+            .pos((x + width).toDouble(), (y + height).toDouble(), 0.0)
+            .tex(uMax.toDouble(), vMax.toDouble()).endVertex()
+        worldrenderer
+            .pos((x + width).toDouble(), y.toDouble(), 0.0)
+            .tex(uMax.toDouble(), vMin.toDouble()).endVertex()
+        worldrenderer
+            .pos(x.toDouble(), y.toDouble(), 0.0)
+            .tex(uMin.toDouble(), vMin.toDouble()).endVertex()
+        tessellator.draw()
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+    }
+
+    fun drawRectNoBlend(left: Int, top: Int, right: Int, bottom: Int, color: Int) {
+        var left = left
+        var top = top
+        var right = right
+        var bottom = bottom
+        if (left < right) {
+            val i = left
+            left = right
+            right = i
+        }
+
+        if (top < bottom) {
+            val j = top
+            top = bottom
+            bottom = j
+        }
+
+        val f3 = (color shr 24 and 255).toFloat() / 255.0f
+        val f = (color shr 16 and 255).toFloat() / 255.0f
+        val f1 = (color shr 8 and 255).toFloat() / 255.0f
+        val f2 = (color and 255).toFloat() / 255.0f
+        val tessellator = Tessellator.getInstance()
+        val worldrenderer = tessellator.getWorldRenderer()
+        GlStateManager.disableTexture2D()
+        GlStateManager.color(f, f1, f2, f3)
+        worldrenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION)
+        worldrenderer.pos(left.toDouble(), bottom.toDouble(), 0.0).endVertex()
+        worldrenderer.pos(right.toDouble(), bottom.toDouble(), 0.0).endVertex()
+        worldrenderer.pos(right.toDouble(), top.toDouble(), 0.0).endVertex()
+        worldrenderer.pos(left.toDouble(), top.toDouble(), 0.0).endVertex()
+        tessellator.draw()
+        GlStateManager.enableTexture2D()
     }
 }
