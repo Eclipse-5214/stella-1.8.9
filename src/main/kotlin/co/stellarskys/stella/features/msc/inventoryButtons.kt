@@ -1,7 +1,9 @@
 package co.stellarskys.stella.features.msc
 
 import co.stellarskys.stella.Stella
+import co.stellarskys.stella.events.GameEvent
 import co.stellarskys.stella.events.GuiEvent
+import co.stellarskys.stella.events.WorldEvent
 import co.stellarskys.stella.features.Feature
 import co.stellarskys.stella.features.msc.buttonUtils.ButtonManager
 import co.stellarskys.stella.utils.TimeUtils
@@ -11,13 +13,8 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @Stella.Module
 object inventoryButtons : Feature("buttonsEnabled") {
-    private val slotSize = 20
-    private val previewSlotsPerAnchor = 5
-
-    var enabled = false
-
     var lastClick = TimeUtils.zero
-    val clickCooldown = 500.milliseconds
+    val clickCooldown = 200.milliseconds
 
     override fun initialize() {
         register<GuiEvent.BackgroundDraw> { event ->
@@ -43,5 +40,14 @@ object inventoryButtons : Feature("buttonsEnabled") {
             lastClick = TimeUtils.now
             ButtonManager.handleMouseClicked(gui, mouseX, mouseY)
         }
+
+        register<WorldEvent.Change> {
+            lastClick = TimeUtils.zero
+        }
+    }
+
+    override fun onRegister() {
+        lastClick = TimeUtils.zero
+        super.onRegister()
     }
 }

@@ -533,5 +533,13 @@ val config = Config("Stella", "Stella") {
                 }
             }
         }
+
+        subcategory("Pet Display") {
+            toggle {
+                configName = "petDisplay"
+                name = "Enabled"
+                description = "Enables the pet display"
+            }
+        }
     }
 }

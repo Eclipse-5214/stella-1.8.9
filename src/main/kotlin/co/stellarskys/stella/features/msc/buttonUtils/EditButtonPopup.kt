@@ -49,6 +49,7 @@ class EditButtonPopup(window: VexelWindow) {
     )
         .setPositioning(90f, Pos.ParentPercent, 5f, Pos.ParentPercent)
         .setSizing(40f, Size.Pixels, 40f, Size.Pixels)
+        .alignRight()
         .onClick { _, _, _ ->
             close()
             true
