@@ -47,6 +47,8 @@ object Render3D {
 
         if (phase) GlStateManager.disableDepth() else GlStateManager.enableDepth()
 
+        GlStateManager.disableCull()
+
         glLineWidth(lineWidth.toFloat())
         GlStateManager.color(color.red / 255.0f, color.green / 255.0f, color.blue / 255.0f, color.alpha / 255.0f)
 
@@ -75,10 +77,12 @@ object Render3D {
         worldRenderer.pos(boundingBox.minX, boundingBox.maxY, boundingBox.maxZ).endVertex()
         tessellator.draw()
 
+        GlStateManager.enableCull()
         GlStateManager.enableDepth()
-        GlStateManager.enableLighting()
+        GlStateManager.depthMask(true)
         GlStateManager.enableTexture2D()
         GlStateManager.disableBlend()
+        GlStateManager.popMatrix()
         GlStateManager.popMatrix()
     }
 
@@ -487,6 +491,7 @@ object Render3D {
         vMax: Float,
         filter: Int
     ) {
+        GlStateManager.pushMatrix()
         GlStateManager.enableTexture2D()
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter)
@@ -511,6 +516,7 @@ object Render3D {
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+        GlStateManager.popMatrix()
     }
 
     fun drawRectNoBlend(left: Int, top: Int, right: Int, bottom: Int, color: Int) {
@@ -536,6 +542,7 @@ object Render3D {
         val f2 = (color and 255).toFloat() / 255.0f
         val tessellator = Tessellator.getInstance()
         val worldrenderer = tessellator.getWorldRenderer()
+        GlStateManager.pushMatrix()
         GlStateManager.disableTexture2D()
         GlStateManager.color(f, f1, f2, f3)
         worldrenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION)
@@ -545,5 +552,6 @@ object Render3D {
         worldrenderer.pos(left.toDouble(), top.toDouble(), 0.0).endVertex()
         tessellator.draw()
         GlStateManager.enableTexture2D()
+        GlStateManager.popMatrix()
     }
 }

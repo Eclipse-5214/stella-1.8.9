@@ -24,7 +24,9 @@ object petDisplay: Feature("petDisplay") {
     var activePetLvl = 0
 
     data class PetCache(
-        val levels: MutableMap<String, Int> = mutableMapOf()
+        val levels: MutableMap<String, Int> = mutableMapOf(),
+        var lastActiveName: String? = null,
+        var lastActiveLevel: Int = 0
     )
 
     val petCache = DataUtils("petCache", PetCache())
@@ -36,14 +38,28 @@ object petDisplay: Feature("petDisplay") {
                 levels[petName] = level
                 Stella.LOGGER.info("Cached pet: $petName → Lvl $level")
             }
+            // also update last active
+            lastActiveName = petName
+            lastActiveLevel = level
         }
     }
 
     fun getCachedLevel(petName: String): Int? = petCache().levels[petName]
     fun getAllCachedPets(): Map<String, Int> = petCache().levels
+    fun getLastActivePet(): Pair<String, Int>? {
+        val cache = petCache()
+        return cache.lastActiveName?.let { it to cache.lastActiveLevel }
+    }
+
 
     override fun initialize() {
         HUDManager.registerCustom(name, 120, 30,this::HUDEditorRender)
+
+        getLastActivePet()?.let { (name, lvl) ->
+            activePet = name
+            activePetLvl = lvl
+            Stella.LOGGER.info("Restored last active pet from cache: $name Lvl $lvl")
+        }
 
         register<ChatEvent.Receive> { event ->
             val msg = event.message.string.clearCodes()
