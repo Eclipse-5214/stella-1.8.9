@@ -34,11 +34,13 @@
 - Terminal Numbers
 - Terminal Tracker
 - Room name GUI
+- Dungeon block overlay (like Neu)
 
 ## **General**
 - Block Overlay
 - Inventory Buttons
 - Cool Chroma
+- Pet Display
 
 <h2 align="center">Installation Steps</h2>
 
