@@ -1,4 +1,5 @@
 name: Run Gradle Build
+
 on:
   - push
   - pull_request
@@ -6,10 +7,17 @@ on:
 jobs:
   gradle:
     runs-on: ubuntu-latest
+    outputs:
+      commit-number: ${{ steps.commit-count.outputs.commit-number }}
+      run-id: ${{ github.run_id }}
     steps:
       - name: Checkout source
         uses: actions/checkout@v4.1.1
-
+        with:
+          fetch-depth: 0
+      - name: Calculate commit number
+        id: commit-count
+        run: echo "commit-number=$(git rev-list --count HEAD)" >> $GITHUB_OUTPUT
       - name: Setup Java
         uses: actions/setup-java@v4.0.0
         with:
@@ -22,8 +30,14 @@ jobs:
       - name: Execute Gradle build
         run: ./gradlew build
 
+      - name: Rename built JAR
+        run: |
+          ORIGINAL_JAR=$(find build/libs -name "*.jar" | head -n 1)
+          TARGET_JAR="build/libs/stella-1.8.9-forge-nightly-${{ steps.commit-count.outputs.commit-number }}.jar"
+          mv "$ORIGINAL_JAR" "$TARGET_JAR"
+
       - name: Upload built mod JAR
         uses: actions/upload-artifact@v4.3.0
         with:
-          name: mod-jar
-          path: build/libs/*.jar
+          name: stella-1.8.9-forge-nightly-${{ steps.commit-count.outputs.commit-number }}
+          path: build/libs/stella-1.8.9-forge-nightly-${{ steps.commit-count.outputs.commit-number }}.jar

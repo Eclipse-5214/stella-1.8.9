@@ -130,7 +130,7 @@ object NEUApi {
         // 2. Try loading from disk
         val file = File(neuRepoDir, "items/$id.json")
         if (!file.exists()) {
-            Stella.LOGGER.warn("NEU item not found for Skyblock ID: $id")
+            Stella.LOGGER.debug("NEU item not found for Skyblock ID: $id")
             return null
         }
 
