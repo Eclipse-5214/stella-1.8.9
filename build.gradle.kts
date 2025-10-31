@@ -109,7 +109,7 @@ dependencies {
     shadowImpl("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2")
     shadowImpl("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
 
-    shadowImpl("xyz.meowing:vexel-1.8.9-forge:104") {
+    shadowImpl("xyz.meowing:vexel-1.8.9-forge:110") {
         exclude("org.lwjgl")
     }
 
