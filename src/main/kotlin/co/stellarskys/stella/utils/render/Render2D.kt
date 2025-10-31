@@ -3,18 +3,16 @@ package co.stellarskys.stella.utils.render
 import co.stellarskys.stella.Stella.Companion.mc
 import co.stellarskys.stella.utils.CompatHelpers.DrawContext
 import co.stellarskys.stella.utils.clearCodes
+import co.stellarskys.stella.utils.skyblock.dungeons.players.DungeonPlayer
 import net.minecraft.client.gui.Gui
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.RenderHelper
-import net.minecraft.client.renderer.Tessellator
-import net.minecraft.client.renderer.texture.SimpleTexture
-import net.minecraft.client.renderer.texture.TextureManager
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats
+import net.minecraft.client.resources.DefaultPlayerSkin
+import net.minecraft.entity.player.EnumPlayerModelParts
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ResourceLocation
-import org.lwjgl.opengl.GL11
 import java.awt.Color
-import javax.imageio.ImageIO
+import java.util.UUID
 
 object Render2D {
     private val formattingRegex = "(?<!\\\\\\\\)&(?=[0-9a-fk-or])".toRegex()
@@ -122,6 +120,20 @@ object Render2D {
         RenderHelper.disableStandardItemLighting()
         GlStateManager.popMatrix()
     }
+
+    fun drawPlayerHead(x: Int, y: Int, size: Int, uuid: UUID) {
+        val info = mc.thePlayer.sendQueue.getPlayerInfo(uuid)
+        val skin = info?.locationSkin ?: DefaultPlayerSkin.getDefaultSkinLegacy()
+
+        preDraw()
+        GlStateManager.enableTexture2D()
+        GlStateManager.color(1f, 1f, 1f, 1f)
+        mc.textureManager.bindTexture(skin)
+        Gui.drawScaledCustomSizeModalRect(x, y, 8f, 8f, 8, 8, size, size, 64f, 64f)
+        Gui.drawScaledCustomSizeModalRect(x, y, 40f, 8f, 8, 8, 12, 12, 64f, 64f)
+        postDraw()
+    }
+
 
     fun String.width(): Int {
         val lines = split('\n')

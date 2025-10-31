@@ -41,7 +41,7 @@ object termNumbers: Feature("termNumbers") {
 
     override fun initialize() {
         register<RenderEvent.World> { event ->
-            if (!Dungeon.inBoss() || Dungeon.floorNumber != 7) return@register
+            if (!Dungeon.inBoss || Dungeon.floorNumber != 7) return@register
 
             val player = mc.thePlayer ?: return@register
             val playerPos = Triple(

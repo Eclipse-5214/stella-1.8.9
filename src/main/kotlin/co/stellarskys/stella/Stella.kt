@@ -7,8 +7,7 @@ import co.stellarskys.stella.utils.ChatUtils
 import co.stellarskys.stella.utils.TickUtils
 import co.stellarskys.stella.utils.config
 import co.stellarskys.stella.utils.skyblock.NEUApi
-import co.stellarskys.stella.utils.skyblock.dungeons.DungeonScanner
-import co.stellarskys.stella.utils.skyblock.dungeons.RoomRegistry
+import co.stellarskys.stella.utils.skyblock.dungeons.Dungeon
 import java.util.concurrent.ConcurrentHashMap
 import net.minecraftforge.fml.common.Mod
 import net.minecraftforge.fml.common.Mod.EventHandler
@@ -38,8 +37,6 @@ class  Stella {
 
         init()
         FeatureLoader.init()
-        RoomRegistry.loadFromRemote()
-        DungeonScanner.init()
         NEUApi.init()
 
         eventCall = EventBus.register<EntityEvent.Join> ({ event ->

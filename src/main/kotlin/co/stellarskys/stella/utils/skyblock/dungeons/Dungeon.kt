@@ -2,686 +2,195 @@ package co.stellarskys.stella.utils.skyblock.dungeons
 
 import co.stellarskys.stella.Stella
 import co.stellarskys.stella.events.*
-import co.stellarskys.stella.mixins.accessors.AccessorNetHandlerPlayClient
-import co.stellarskys.stella.utils.TickUtils
-import co.stellarskys.stella.utils.clearCodes
-import co.stellarskys.stella.utils.skyblock.HypixelApi
+import co.stellarskys.stella.utils.*
 import co.stellarskys.stella.utils.skyblock.LocationUtils
-import co.stellarskys.stella.utils.skyblock.dungeons.DungeonScanner.currentRoom
+import co.stellarskys.stella.utils.skyblock.dungeons.map.*
+import co.stellarskys.stella.utils.skyblock.dungeons.players.DungeonPlayerManager
+import co.stellarskys.stella.utils.skyblock.dungeons.score.*
+import co.stellarskys.stella.utils.skyblock.dungeons.utils.*
 import co.stellarskys.stella.utils.CompatHelpers.*
-import net.minecraft.network.play.server.*
-import net.minecraft.world.storage.MapData
-import net.minecraft.entity.monster.EntityZombie
-import net.minecraft.item.ItemMap
-import net.minecraft.util.Vec4b
-import kotlin.math.ceil
-import kotlin.math.floor
 
-val puzzleEnums = mapOf(
-    "✦" to 0,
-    "✔" to 1,
-    "✖" to 2
-)
-
-val milestones = listOf("⓿", "❶", "❷", "❸", "❹", "❺", "❻", "❼", "❽", "❾")
-
-val floorSecrets = mapOf(
-    "F1" to 0.3,
-    "F2" to 0.4,
-    "F3" to 0.5,
-    "F4" to 0.6,
-    "F5" to 0.7,
-    "F6" to 0.85
-)
-
-val floorTimes = mapOf(
-    "F3" to 120,
-    "F4" to 240,
-    "F5" to 120,
-    "F6" to 240,
-    "F7" to 360,
-    "M1" to 0,
-    "M2" to 0,
-    "M3" to 0,
-    "M4" to 0,
-    "M5" to 0,
-    "M6" to 120,
-    "M7" to 360
-)
-
-val mimicMessages = listOf(
-    "mimic dead",
-    "mimic dead!",
-    "mimic killed",
-    "mimic killed!",
-    "\$skytils-dungeon-score-mimic$"
-)
-
-
-
+/**
+ * Central dungeon state manager.
+ * Basically one-stop shop for everything dungeons
+ */
 object Dungeon {
-    // regex
-    val regexes = mapOf(
-        "Floor" to Regex("""^The Catacombs \(([MF][1-7]|E)\)$"""),
-        "PlayerInfo" to Regex("""^\[(\d+)] (?:\[\w+] )?(\w{1,16})(?: .)? \((\w+)(?: ([IVXLCDM]+))?\)$"""),
-        "SecretsFound" to Regex("""^Secrets Found: ([\d,.]+)$"""),
-        "SecretsFoundPer" to Regex("""^Secrets Found: ([\d,.]+)%$"""),
-        "RoomSecrets" to Regex("""\b([0-9]|10)/([0-9]|10)\s+Secrets\b"""),
-        "Milestone" to Regex("""^Your Milestone: .(.)$"""),
-        "CompletedRooms" to Regex("""^Completed Rooms: (\d+)$"""),
-        "TeamDeaths" to Regex("""^Team Deaths: (\d+)$"""),
-        "PuzzleCount" to Regex("""^Puzzles: \((\d+)\)$"""),
-        "Crypts" to Regex("""^Crypts: (\d+)$"""),
-        "RoomSecretsFound" to Regex("""(\d+)/(\d+) Secrets"""),
-        "PuzzleState" to Regex("""^([\w ]+): \[([✦✔✖])]\s?\(?(\w{1,16})?\)?$"""),
-        "OpenedRooms" to Regex("""^Opened Rooms: (\d+)$"""),
-        "ClearedRooms" to Regex("""^Completed Rooms: (\d+)$"""),
-        "ClearedPercent" to Regex("""^Cleared: (\d+)% \(\d+\)$"""),
-        "DungeonTime" to Regex("""^Time: (?:(\d+)h)?\s?(?:(\d+)m)?\s?(?:(\d+)s)?$"""),
-        "Mimic" to Regex("""^Party > (?:\[[\w+]+] )?\w{1,16}: (.*)$"""),
-        "DungeonComplete" to Regex("""^\s*(Master Mode)?\s?(?:The)? Catacombs - (Entrance|Floor .{1,3})$"""),
-        "WatcherDone" to Regex("""\[BOSS] The Watcher: That will be enough for now\."""),
-        "PlayerDeath" to Regex("☠ (.*?) .*? and became a ghost")
-    )
 
-    private val playerEntryNames = mapOf("!A-b" to 1, "!A-f" to 5,"!A-j" to 9,"!A-n" to 13,"!A-r" to 17)
+    // Regex patterns for chat parsing
+    private val WATCHER_PATTERN = Regex("""\[BOSS] The Watcher: That will be enough for now\.""")
+    private val DUNGEON_COMPLETE_PATTERN = Regex("""^\s*(Master Mode)?\s?(?:The)? Catacombs - (Entrance|Floor .{1,3})$""")
+    private val ROOM_SECRETS_PATTERN = Regex("""\b([0-9]|10)/([0-9]|10)\s+Secrets\b""")
 
-    var partyMembers: MutableList<String> = mutableListOf()
-    var players: MutableMap<String, PlayerInfo> = mutableMapOf()
-    var icons: MutableMap<String, Icon> = mutableMapOf() // Replace `Any` with actual icon type if known
+    // Room and door data
+    val rooms = Array<Room?>(36) { null }
+    val doors = Array<Door?>(60) { null }
+    val uniqueRooms = mutableSetOf<Room>()
+    val uniqueDoors = mutableSetOf<Door>()
+    val discoveredRooms = mutableMapOf<String, DiscoveredRoom>()
 
-    // floor
-    var floor: String? = null
-    var floorNumber: Int? = null
+    // Dungeon state
+    var bloodClear = false
+    var bloodDone = false
+    var complete = false
+    var currentRoom: Room? = null
+    var holdingLeaps = false
 
-     val Vec4b.mapX get() = (this.func_176112_b() + 128) shr 1
-     val Vec4b.mapZ get() = (this.func_176113_c() + 128) shr 1
-     val Vec4b.yaw get() = this.func_176111_d() * 22.5f
+    // Floor info
+    val floor: String? get() = LocationUtils.dungeonFloor
+    val floorNumber: Int? get() = LocationUtils.dungeonFloorNum
+    var inDungeon = false
+    val inBoss: Boolean
+        get() = floor != null && Stella.mc.thePlayer?.let {
+            val (x, z) = WorldScanUtils.realCoordToComponent(it.x.toInt(), it.z.toInt())
+            6 * z + x > 35
+        } == true
 
-    //Map
-    var mapCorners = Pair(5, 5)
-    var mapRoomSize = 16
-    var mapGapSize = 0
+    // HUD lines
     var mapLine1 = ""
     var mapLine2 = ""
-    var coordMultiplier = 0.625
-    var calibrated = false
 
-    var mapData: MapData? = null
-    var guessMapData: MapData? = null
+    // Shortcuts
+    val players get() = DungeonPlayerManager.players
+    val score get() = DungeonScore.score
 
-    // dungeon
-    var secretsFound: Int = 0
-    var secretsFoundPercent: Double = 0.0
-    var crypts: Int = 0
-    var milestone: String = "⓿"
-    var completedRooms: Int = 0
-    var puzzleCount: Int = 0
-    var teamDeaths: Int = 0
-    var openedRooms: Int = 0
-    var clearedRooms: Int = 0
-    var complete = false
+    data class DiscoveredRoom(val x: Int, val z: Int, val room: Room)
 
-    // player
-    var currentClass: String? = null
-    var currentLevel: Int = 0
-    var puzzlesDone: Int = 0
-    var holdingLeaps: Boolean = false
-
-
-    // score
-    var scoreData = ScoreData()
-    var bloodDone: Boolean = false
-    var bloodOpen: Boolean = false
-    var dungeonSeconds: Int = 0
-    var hasSpiritPet: Boolean = false
-    var mimicDead: Boolean = false
-    var clearedPercent: Int = 0
-    var secretsPercentNeeded: Double = 1.0
-    var has270Triggered: Boolean = false
-    var has300Triggered: Boolean = false
-    var hasPaul = false
-
-    // Mimic
-    val MimicTrigger: EventBus.EventCall = EventBus.register<EntityEvent.Leave>({ event ->
-        val mcEntity = event.entity
-        if (floorNumber !in listOf(6, 7) || mimicDead) return@register
-         if (mcEntity !is EntityZombie) return@register
-         if (!mcEntity.isChild) return@register
-         for (i in 0..3) {
-             val armor = mcEntity.getCurrentArmor(i)
-             if (armor == null || armor.stackSize == 0) return@register
-         }
-        mimicDead = true
-    }, false)
-
+    /** Initializes all dungeon systems and event listeners */
     init {
-        EventBus.register<TablistEvent> {
-            TickUtils.schedule(1) {
-                var playerName: String? = null
-
-                Stella.mc.thePlayer.let { playerName = it.name }
-
-                if (playerName == null) return@schedule
-                val self = players[playerName]
-
-                val alives = players.values
-                    .filterNot { it.isDead || it == self }
-                    .sortedBy { it.tabIndex }
-
-                alives.forEachIndexed { index, player ->
-                    player.icon = "icon-$index"
-                }
-
-                self?.icon = "icon-${alives.size}"
+        EventBus.register<AreaEvent.Main> {
+            TickUtils.scheduleServer(1) {
+                inDungeon = LocationUtils.area == "catacombs"
+                if (!inDungeon) reset()
             }
         }
 
-        EventBus.register<PacketEvent.Received>({ event ->
-             if (event.packet is S34PacketMaps) {
-                 val world = Stella.mc.theWorld ?: return@register
-                 val id = event.packet.mapId
-                 if (id and 1000 == 0) {
-                     val guess =
-                         world.mapStorage.loadData(MapData::class.java, "map_$id") as MapData? ?: return@register
-                     if (guess.mapDecorations.any { it.value.func_176110_a() == 1.toByte() }) {
-                         guessMapData = guess
-                     }
-                 }
-             }
+        EventBus.register<WorldEvent.Change> { reset() }
 
-
-            if (event.packet is S3EPacketTeams) {
-                if (event.packet.action != 2) return@register
-                val teamStr = event.packet.name
-                Regex("^team_(\\d+)$").matchEntire(teamStr) ?: return@register
-
-                val formatted = event.packet.prefix + event.packet.suffix
-                val unformatted =  formatted.clearCodes()
-                val clear = unformatted.toCharArray().filter { it.code in 32..126 }.joinToString(separator = "")
-
-                val msg  = clear.trim()
-                val percentMatch = regexes["ClearedPercent"]!!.find(msg)
-                if ( percentMatch != null){
-                    val percentStr = percentMatch.groupValues[1]
-                    clearedPercent = percentStr.toInt()
-                    return@register
-                }
-
-                if (floor != null) return@register
-
-                val floorMatch = regexes["Floor"]!!.find(msg) ?: return@register
-                floor = floorMatch.groupValues[1]
-                floorNumber = floor?.getOrNull(1)?.digitToIntOrNull() ?: 0
-                secretsPercentNeeded = floorSecrets[floor] ?: 1.0
-                MimicTrigger.register()
-            }
-
-
-            if (event.packet is S38PacketPlayerListItem) {
-                val action = event.packet.action
-                val entries = event.packet.entries
-
-                if(action != S38PacketPlayerListItem.Action.ADD_PLAYER && action != S38PacketPlayerListItem.Action.UPDATE_DISPLAY_NAME) return@register
-
-                for (entry in entries) {
-                    val name = entry.displayName
-                    val profile = entry.profile
-
-                    if (name == null && profile == null) continue
-
-                    val formatted = name?.formattedText ?: continue
-                    val unformatted = formatted.clearCodes()
-
-                    val uuid = profile?.id ?: continue
-                    val old = (Stella.mc.netHandler as? AccessorNetHandlerPlayClient)?.uuidToPlayerInfo?.get(uuid)
-                    val key = old?.gameProfile?.name ?: profile.name ?: continue
-                    val idx = playerEntryNames[key] ?: -1
-
-
-                    val msg = unformatted.trim()
-                    if(msg == "") return@register
-
-                    val timeMatch = regexes["DungeonTime"]!!.find(msg)
-                    if (timeMatch != null) {
-                        val hours = timeMatch.groupValues.getOrNull(1)?.toIntOrNull() ?: 0
-                        val minutes = timeMatch.groupValues.getOrNull(2)?.toIntOrNull() ?: 0
-                        val seconds = timeMatch.groupValues.getOrNull(3)?.toIntOrNull() ?: 0
-
-                        dungeonSeconds = seconds + (minutes * 60) + (hours * 60 * 60)
-                    }
-
-                    secretsFound        = extractInt("SecretsFound", msg, secretsFound)
-                    secretsFoundPercent = extractDouble("SecretsFoundPer", msg, secretsFoundPercent)
-                    crypts              = extractInt("Crypts", msg, crypts)
-                    milestone           = extractString("Milestone", msg, milestone)
-                    completedRooms      = extractInt("CompletedRooms", msg, completedRooms)
-                    puzzleCount         = extractInt("PuzzleCount", msg, puzzleCount)
-                    teamDeaths          = extractInt("TeamDeaths", msg, teamDeaths)
-                    openedRooms         = extractInt("OpenedRooms", msg, openedRooms)
-                    clearedRooms        = extractInt("ClearedRooms", msg, clearedRooms)
-                    calculateScore()
-
-                    val puzzleMatch = regexes["PuzzleState"]!!.find(msg)
-                    if (puzzleMatch != null) {
-                        val puzzleName = puzzleMatch.groupValues[1]
-                        val puzzleState = puzzleMatch.groupValues[2]
-                        val failedBy = puzzleMatch.groupValues.getOrNull(3)
-                        val puzzleEnum = puzzleEnums[puzzleState]
-                        if (puzzleEnum == 1) puzzlesDone++
-                    }
-
-                    val playerMatch = regexes["PlayerInfo"]?.find(msg)?.groupValues
-                    if (playerMatch != null) {
-                        val playerName = playerMatch[2]
-                        val className = playerMatch[3]
-                        val classLevel = playerMatch[4]
-
-                        if (!partyMembers.contains(playerName)) {
-                            partyMembers.add(playerName)
-                        }
-
-                        val dead = className == "DEAD"
-
-                        if (className.isNotEmpty()) {
-                            players[playerName] = PlayerInfo(
-                                className = className,
-                                level = decodeRoman(classLevel),
-                                levelRoman = classLevel,
-                                name = playerName,
-                                isDead = dead,
-                                tabIndex = idx
-                            )
-
-                            val player = Stella.mc.thePlayer ?: return@register
-                            if (playerName.equals(player.name.string, ignoreCase = true)) {
-                                currentClass = className
-                                currentLevel = decodeRoman(classLevel)
-                            }
-                        }
-                    }
-                }
-            }
-        })
-
-        EventBus.register<TickEvent.Client>({ event ->
-            if (!calibrated) {
-                if (mapData == null) {
-                    mapData = getCurrentMapState()
-                }
-
-                calibrated = calibrateDungeonMap()
-            } else if (!inBoss()) {
-                (mapData ?: guessMapData)?.let {
-                    updatePlayersFromMap(it)
-                    DungeonScanner.scanFromMap(it)
-                    checkBloodDone(it)
-                }
-            }
-
-            val dSecrets = "§7Secrets: " + "§b${secretsFound}§8-§e${scoreData.secretsRemaining}§8-§c${scoreData.totalSecrets}"
-            val dCrypts = "§7Crypts: " + when {crypts >= 5 -> "§a${crypts}"; crypts > 0 -> "§e${crypts}"; else -> "§c0" }
-            val dMimic = if (floorNumber in listOf(6, 7)) { "§7Mimic: " + if (mimicDead) "§a✔" else "§c✘" } else { "" }
-            val minSecrets = "§7Min Secrets: " + if (secretsFound == 0) { "§b?" } else if (scoreData.minSecrets > secretsFound) { "§e${scoreData.minSecrets}" } else { "§a${scoreData.minSecrets}" }
-            val dDeaths = "§7Deaths: " + if (teamDeaths > 0) { "§c${teamDeaths}" } else { "§a0" }
-            val dScore = "§7Score: " + when {scoreData.score >= 300 -> "§a${scoreData.score}"; scoreData.score >= 270 -> "§e${scoreData.score}"; else -> "§c${scoreData.score}" } + if (hasPaul) " §b★" else ""
-
-            mapLine1 = "$dSecrets    $dCrypts    $dMimic".trim()
-            mapLine2 = "$minSecrets    $dDeaths    $dScore".trim()
-
-            val player = Stella.mc.thePlayer ?: return@register
-            val heldItem = player.heldItem ?: return@register
-            val displayName = heldItem.displayName?.clearCodes() ?: return@register
-
-            holdingLeaps = "leap" in displayName.lowercase()
-        })
-
-        EventBus.register<ChatEvent.Receive>( { event ->
-            if (floorNumber !in listOf(6, 7) || floor == null) return@register
-
+        EventBus.register<ChatEvent.Receive> { event ->
+            if (!inDungeon) return@register
             val msg = event.message.string.clearCodes()
-            val match = regexes["Mimic"]!!.matchEntire(msg) ?: return@register
-
-            if (mimicMessages.none { it == match.groupValues[1].lowercase() }) return@register
-            mimicDead = true
-        })
-
-        EventBus.register<GameEvent.ActionBar>({ event ->
-            val room = currentRoom ?: return@register
-
-            val match = regexes["RoomSecrets"]!!.find(event.message.string.clearCodes()) ?: return@register
-
-            val (found, total) = match.destructured
-
-            val secrets = found.toInt()
-
-            if (secrets == room.secretsFound) return@register
-            room.secretsFound = secrets
-        })
-
-        EventBus.register<ChatEvent.Receive>({ event ->
-            val msg = event.message.string.clearCodes()
-
-            val compleateMatch = regexes["DungeonComplete"]!!.find(msg)
-
-            if (compleateMatch != null) {
+            if (WATCHER_PATTERN.containsMatchIn(msg)) bloodDone = true
+            if (DUNGEON_COMPLETE_PATTERN.containsMatchIn(msg)) {
+                DungeonPlayerManager.updateAllSecrets()
                 complete = true
-
-                DungeonScanner.players.forEach { player ->
-                    val uuid = player.uuid ?: return@forEach
-                    HypixelApi.fetchSecrets(uuid, cacheMs = 0) { secrets ->
-                        player.currSecrets = secrets
-                    }
-                }
-                return@register
             }
+        }
 
-            val watcherMatch = regexes["WatcherDone"]!!.find(msg)
+        EventBus.register<GameEvent.ActionBar> { event ->
+            if (!inDungeon) return@register
+            val room = currentRoom ?: return@register
+            val match = ROOM_SECRETS_PATTERN.find(event.message.string.clearCodes()) ?: return@register
+            val (found, _) = match.destructured
+            val secrets = found.toInt()
+            if (secrets != room.secretsFound) room.secretsFound = secrets
+        }
 
-            if (watcherMatch != null) {
-                bloodOpen = true
-                return@register
-            }
+        EventBus.register<TickEvent.Client> {
+            if (!inDungeon) return@register
+            updateHudLines()
+            updateHeldItem()
+        }
 
-            val deathMatch = regexes["PlayerDeath"]!!.find(msg)
-
-            if (deathMatch != null) {
-                val name = deathMatch.groups[1]?.value ?: return@register
-                DungeonScanner.players.find { it.name == name}?.apply { deaths ++ }
-                return@register
-            }
-        })
-
-        EventBus.register<AreaEvent.Main> ({
-            TickUtils.schedule(2) {
-                if (LocationUtils.area != "catacombs") reset()
-            }
-        })
-
-        HypixelApi.fetchElectionData(
-            onResult = { data ->
-                hasPaul = (data?.mayorName?.lowercase() == "paul" && data.mayorPerks.any { it.first.lowercase() == "ezpz" }) ||
-                        (data?.ministerName?.lowercase() == "paul" && data.ministerPerk.lowercase() == "ezpz")
-            },
-            onError = { error ->
-                error.printStackTrace()
-            }
-        )
-
-        EventBus.register<WorldEvent.Unload> { reset() }
+        RoomRegistry.loadFromRemote()
+        WorldScanner.init()
+        DungeonPlayerManager.init()
+        DungeonScore.init()
+        MapUtils.init()
     }
 
+    /** Clears all dungeon state */
     fun reset() {
-        partyMembers = mutableListOf()
-        players.clear()
-        icons.clear()
-        mapCorners = Pair(5, 5)
-        mapRoomSize = 16
-        mapGapSize = 0
-        mapData = null
-        guessMapData = null
-        calibrated = false
-        floor = null
-        floorNumber = null
-        secretsFound = 0
-        secretsFoundPercent = 0.0
-        crypts = 0
-        milestone = "⓿"
-        completedRooms = 0
-        puzzleCount = 0
-        teamDeaths = 0
-        openedRooms = 0
-        clearedRooms = 0
-        currentClass = null
-        currentLevel = 0
-        puzzlesDone = 0
-        clearedPercent = 0
-        secretsPercentNeeded = 1.0
-        scoreData = ScoreData()
+        rooms.fill(null)
+        doors.fill(null)
+        uniqueRooms.clear()
+        uniqueDoors.clear()
+        discoveredRooms.clear()
+        currentRoom = null
+        bloodClear = false
         bloodDone = false
-        bloodOpen = false
-        dungeonSeconds = 0
-        hasSpiritPet = false
-        mimicDead = false
-        has270Triggered = false
-        has300Triggered = false
         complete = false
-        MimicTrigger.unregister()
+        holdingLeaps = false
+        mapLine1 = ""
+        mapLine2 = ""
+        WorldScanner.reset()
+        DungeonPlayerManager.reset()
+        DungeonScore.reset()
+        MapUtils.reset()
     }
 
-    data class ScoreData(
-        var totalSecrets: Int = 0,
-        var secretsRemaining: Int = 0,
-        var totalRooms: Int = 0,
-        var deathPenalty: Int = 0,
-        var completionRatio: Double = 0.0,
-        var adjustedRooms: Int = 0,
-        var roomsScore: Double = 0.0,
-        var skillScore: Double = 0.0,
-        var secretsScore: Double = 0.0,
-        var exploreScore: Double = 0.0,
-        var bonusScore: Int = 0,
-        var score: Int = 0,
-        var maxSecrets: Int = 0,
-        var minSecrets: Int = 0
-    )
+    /** Updates HUD lines for map overlay */
+    private fun updateHudLines() {
+        val run = DungeonScore.data
 
-    data class PlayerInfo(
-        val className: String,
-        val level: Int,
-        val levelRoman: String,
-        val name: String,
-        var tabIndex: Int = -1, // new field
-        var isDead: Boolean = false, // optional, for filtering
-        var icon: String = ""
-    )
-
-    data class Icon(
-        var x: Int,
-        var y: Int,
-        var yaw: Float,
-        var player: String?
-    )
-
-    // functions
-    fun calculateScore() {
-        if (floor == null) return
-
-        val missingPuzzles = puzzleCount - puzzlesDone
-
-        scoreData.totalSecrets = ((100.0 / secretsFoundPercent) * secretsFound + 0.5).toInt()
-        scoreData.secretsRemaining = scoreData.totalSecrets - secretsFound
-
-        val estimatedTotal = ((100.0 / clearedPercent) * completedRooms + 0.4)
-        val totalRooms = estimatedTotal.toInt().takeIf { it > 0 } ?: 36
-        scoreData.totalRooms = totalRooms
-        scoreData.adjustedRooms = completedRooms
-
-        if (!bloodDone || !inBoss()) {
-            scoreData.adjustedRooms++
+        val dSecrets = "§7Secrets: §b${run.secretsFound}§8-§e${run.secretsRemaining}§8-§c${run.totalSecrets}"
+        val dCrypts = "§7Crypts: " + when {
+            run.crypts >= 5 -> "§a${run.crypts}"
+            run.crypts > 0  -> "§e${run.crypts}"
+            else            -> "§c0"
         }
-        if (completedRooms <= scoreData.totalRooms - 1 && !bloodDone) scoreData.adjustedRooms++
+        val dMimic = if (floorNumber in listOf(6, 7)) {
+            "§7Mimic: " + if (MimicTrigger.mimicDead) "§a✔" else "§c✘"
+        } else ""
 
-        scoreData.deathPenalty = (teamDeaths * -2) + if (hasSpiritPet && teamDeaths > 0) 1 else 0
-
-        scoreData.completionRatio = scoreData.adjustedRooms.toDouble() / scoreData.totalRooms
-        scoreData.roomsScore = (80 * scoreData.completionRatio).coerceIn(0.0, 80.0)
-        scoreData.skillScore = (20 + scoreData.roomsScore - 10 * missingPuzzles + scoreData.deathPenalty).coerceIn(20.0, 100.0)
-
-        scoreData.secretsScore = (40 * ((secretsFoundPercent / 100.0) / secretsPercentNeeded)).coerceIn(0.0, 40.0)
-        scoreData.exploreScore = (60 * scoreData.completionRatio + scoreData.secretsScore).coerceIn(0.0, 100.0)
-
-        if (clearedPercent == 0) scoreData.exploreScore = 0.0
-
-        val cryptScore = crypts.coerceAtMost(5)
-        val mimicScore = if (mimicDead) 2 else 0
-        val paulScore = if (hasPaul) 10 else 0
-
-        scoreData.bonusScore = cryptScore + mimicScore + paulScore
-
-        val totalTime = dungeonSeconds - (floorTimes[floor] ?: 0)
-        val speedScore = calculateSpeedScore(totalTime, if (floor == "E") 0.7 else 1.0)
-        scoreData.score = (scoreData.skillScore + scoreData.exploreScore + speedScore + scoreData.bonusScore).toInt()
-        scoreData.maxSecrets = ceil(scoreData.totalSecrets * secretsPercentNeeded).toInt()
-        scoreData.minSecrets = floor(scoreData.maxSecrets * ((40.0 - scoreData.bonusScore + scoreData.deathPenalty) / 40.0)).toInt()
-
-        /*
-        if (scoreData.score >= 300 && !_has300Triggered) {
-            _on300Listeners.forEach { it() }
-            _has300Triggered = true
-            return
+        val minSecrets = "§7Min Secrets: " + when {
+            run.secretsFound == 0 -> "§b?"
+            run.minSecrets > run.secretsFound -> "§e${run.minSecrets}"
+            else -> "§a${run.minSecrets}"
         }
-        if (scoreData.score < 270 || _has270Triggered) return
 
-        _on270Listeners.forEach { it() }
-        _has270Triggered = true
-        */
+        val dDeaths = "§7Deaths: " + if (run.teamDeaths < 0) "§c${run.teamDeaths}" else "§a0"
+        val dScore = "§7Score: " + when {
+            run.score >= 300 -> "§a${run.score}"
+            run.score >= 270 -> "§e${run.score}"
+            else             -> "§c${run.score}"
+        } + if (DungeonScore.hasPaul) " §b★" else ""
+
+        mapLine1 = "$dSecrets    $dCrypts    $dMimic".trim()
+        mapLine2 = "$minSecrets    $dDeaths    $dScore".trim()
     }
 
-    fun inBoss(): Boolean{
-        if (floor == null) return false
-        val player = Stella.mc.thePlayer ?: return false
-
-        val (x, z) = realCoordToComponent(player.x.toInt(), player.z.toInt())
-        val idx = 6 * z + x
-
-        return idx > 35
+    /** Updates leap detection based on held item */
+    private fun updateHeldItem() {
+        val item = Stella.mc.thePlayer?.heldItem ?: return
+        holdingLeaps = "leap" in item.displayName.clearCodes().lowercase()
     }
 
+    // Room accessors
+    fun getRoomIdx(comp: Pair<Int, Int>) = 6 * comp.second + comp.first
+    fun getRoomAtIdx(idx: Int) = rooms.getOrNull(idx)
+    fun getRoomAtComp(comp: Pair<Int, Int>) = getRoomAtIdx(getRoomIdx(comp))
+    fun getRoomAt(x: Int, z: Int) = getRoomAtComp(WorldScanUtils.realCoordToComponent(x, z))
 
-    // map stuff
-     fun getCurrentMapState(): MapData? {
-        val map = Stella.mc.thePlayer?.inventory?.getStackInSlot(8) ?: return null
-        if (map.item !is ItemMap || !map.displayName.contains("Magical Map")) return null
-        return (map.item as ItemMap).getMapData(map, Stella.mc.theWorld)
-     }
-
-    fun calibrateDungeonMap(): Boolean {
-        val mapState = getCurrentMapState() ?: return false
-        val entranceInfo = findEntranceCorner(mapState.colors) ?: return false
-
-        val (startIndex, size) = entranceInfo
-        mapRoomSize = size
-        mapGapSize = mapRoomSize + 4 // compute gap size from room width
-
-        var x = (startIndex % 128) % mapGapSize
-        var z = (startIndex / 128) % mapGapSize
-
-        val floor = floorNumber?: return false
-        if (floor in listOf(0, 1)) x += mapGapSize
-        if (floor == 0) z += mapGapSize
-
-        mapCorners = x to z
-        coordMultiplier = mapGapSize / roomDoorCombinedSize.toDouble()
-
-        return true
+    // Door accessors
+    fun getDoorIdx(comp: Pair<Int, Int>): Int {
+        val base = ((comp.first - 1) shr 1) + 6 * comp.second
+        return base - (base / 12)
     }
 
-    fun findEntranceCorner(colors: ByteArray): Pair<Int, Int>? {
-        for (i in colors.indices) {
-            if (colors[i] != 30.toByte()) continue
+    fun getDoorAtIdx(idx: Int) = doors.getOrNull(idx)
+    fun getDoorAtComp(comp: Pair<Int, Int>) = getDoorAtIdx(getDoorIdx(comp))
+    fun getDoorAt(x: Int, z: Int) = getDoorAtComp(WorldScanUtils.realCoordToComponent(x, z))
 
-            // Check horizontal 15-block chain
-            if (i + 15 < colors.size && colors[i + 15] == 30.toByte()) {
-                // Check vertical 15-block chain
-                if (i + 128 * 15 < colors.size && colors[i + 128 * 15] == 30.toByte()) {
-                    var length = 0
-                    while (i + length < colors.size && colors[i + length] == 30.toByte()) {
-                        length++
-                    }
-                    return Pair(i, length)
-                }
+    /** Adds a door to the map and tracks it as unique */
+    fun addDoor(door: Door) {
+        val idx = getDoorIdx(door.getComp())
+        if (idx in doors.indices) {
+            doors[idx] = door
+            uniqueDoors += door
+        }
+    }
+
+    /** Merges two rooms into one unified instance */
+    fun mergeRooms(room1: Room, room2: Room) {
+        uniqueRooms.remove(room2)
+        for (comp in room2.components) {
+            if (!room1.hasComponent(comp.first, comp.second)) {
+                room1.addComponent(comp, update = false)
             }
+            val idx = getRoomIdx(comp)
+            if (idx in rooms.indices) rooms[idx] = room1
         }
-        return null
-    }
-
-     fun updatePlayersFromMap(state: MapData) {
-         val decor = state.mapDecorations
-         players.forEach { (name, player) ->
-             decor.entries.find { (icon, _) -> icon == player.icon }?.let { (_, decoration) ->
-                 icons[player.icon] = Icon(
-                     x = decoration.mapX,
-                     y = decoration.mapZ,
-                     yaw = decoration.yaw + 180f,
-                     player = player.name
-                 )
-             }
-         }
-
-         DungeonScanner.updatePlayersFromMap()
-     }
-
-    fun checkBloodDone(state: MapData) {
-        if (bloodDone) return
-
-        val startX = mapCorners.first + (mapRoomSize / 2)
-        val startY = mapCorners.second + (mapRoomSize / 2) + 1
-
-        for (x in startX until 118 step (mapGapSize / 2)) {
-            for (y in startY until 118 step (mapGapSize / 2)) {
-                val i = x + y * 128
-                if (state.colors.getOrNull(i) == null) continue
-
-                val center = state.colors[i - 1]
-                val roomColor = state.colors.getOrNull(i + 5 + 128 * 4) ?: continue
-
-                if (roomColor != 18.toByte()) continue
-                if (center != 30.toByte()) continue
-                bloodDone = true
-            }
-        }
-    }
-
-    //internal helpers
-    private fun extractInt(key: String, msg: String, fallback: Int): Int {
-        val match = regexes[key]!!.find(msg) ?: return fallback
-        return match.groupValues.getOrNull(1)?.replace(",", "")?.toIntOrNull() ?: fallback
-    }
-
-    private fun extractDouble(key: String, msg: String, fallback: Double): Double {
-        val match = regexes[key]!!.find(msg) ?: return fallback
-        return match.groupValues.getOrNull(1)?.replace(",", "")?.toDoubleOrNull() ?: fallback
-    }
-
-    private fun extractString(key: String, msg: String, fallback: String): String {
-        val match = regexes[key]!!.find(msg) ?: return fallback
-        return match.groupValues.getOrNull(1) ?: fallback
-    }
-
-    fun calculateSpeedScore(time: Int, scale: Double = 1.0): Int = when {
-        time < 492.0 -> 100.0 * scale
-        time < 600.0 -> (140 - time / 12.0) * scale
-        time < 840.0 -> (115 - time / 24.0) * scale
-        time < 1140.0 -> (108 - time / 30.0) * scale
-        time < 3570.0 -> (98.5 - time / 40.0) * scale
-        else -> 0.0
-    }.toInt()
-
-    // Useful functions
-    fun getMilestone(asIndex: Boolean = false): Any =
-        if (asIndex) milestones.indexOf(milestone) else milestone
-
-    fun getByClass(className: String): List<PlayerInfo> {
-        return players.values.filter { it.className == className }
-    }
-
-    fun getByName(playerName: String): PlayerInfo? {
-        return players[playerName]
-    }
-
-    fun isDupeClass(className: String): Boolean {
-        return getByClass(className).size > 1
-    }
-
-    fun getMageReduction(cooldown: Double, checkClass: Boolean = false): Double {
-        if (checkClass && currentClass != "Mage") return cooldown
-
-        val mult = if (isDupeClass("Mage")) 1 else 2
-        return cooldown * (0.75 - (floor(currentLevel / 2.0) / 100.0) * mult)
-    }
-
-    fun setSpiritPet(value: Boolean) {
-        hasSpiritPet = value
+        uniqueRooms += room1
+        room1.update()
     }
 }

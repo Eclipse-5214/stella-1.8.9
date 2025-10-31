@@ -4,10 +4,10 @@ import co.stellarskys.stella.Stella
 import co.stellarskys.stella.features.stellanav.utils.*
 import co.stellarskys.stella.utils.render.Render2D
 import co.stellarskys.stella.utils.skyblock.dungeons.Dungeon
-import co.stellarskys.stella.utils.skyblock.dungeons.DungeonScanner
 import co.stellarskys.stella.utils.CompatHelpers.*
 import net.minecraft.util.ResourceLocation
 import net.minecraft.util.Vec3
+import java.util.UUID
 import javax.imageio.ImageIO
 
 object boss {
@@ -74,27 +74,27 @@ object boss {
 
         // Enable Scissor
         context.enableScissor(0, 0, size, size)
-        for ((k, v) in Dungeon.players) {
-            val player = DungeonScanner.players.find { it.name == v.name } ?: continue
+        for (player in Dungeon.players) {
+            if (player == null) continue
             val you = Stella.mc.thePlayer ?: continue
-            if (v.isDead && v.name != you.name.string) continue
+            if (!player.alive && player.name != you.name.string) continue
 
             val realX = player.realX ?: continue
             val realY = player.realZ ?: continue
-            val rotation = player.rotation ?: continue
+            val rotation = player.yaw ?: continue
 
             val x = ((realX - bossMap.topLeftLocation[0]) / sizeInWorld) * size - topLeftHudLocX
             val y = ((realY - bossMap.topLeftLocation[1]) / sizeInWorld) * size - topLeftHudLocZ
 
             val matrix = context.matrices
 
-            val ownName = mapConfig.dontShowOwn && v.name == you.name
+            val ownName = mapConfig.dontShowOwn && player.name == you.name
             if (Dungeon.holdingLeaps && mapConfig.showNames && !ownName) {
                 matrix.pushMatrix()
                 matrix.translate(x.toFloat(), y.toFloat(), 1f)
 
                 val scale = mapConfig.iconScale / 1.3f
-                renderNametag(context, v.name, scale)
+                renderNametag(context, player.name, scale)
                 matrix.popMatrix()
             }
 
@@ -107,49 +107,16 @@ object boss {
                 val w = 12
                 val h = 12
 
-                val borderColor = if (mapConfig.iconClassColors) getClassColor(v.className) else mapConfig.iconBorderColor
-
+                val borderColor = if (mapConfig.iconClassColors) getClassColor(player.dclass.displayName) else mapConfig.iconBorderColor
                 Render2D.drawRect(context, (-w.toDouble() / 2.0).toInt(), (-h.toDouble() / 2.0).toInt(), w, h, borderColor)
 
                 val scale = 1f - mapConfig.iconBorderWidth
-
                 matrix.scale(scale, scale, 1f)
-
-                Render2D.drawTexture(
-                    context,
-                    player.skin,
-                    (-w.toDouble() / 2.0).toInt(),
-                    (-h.toDouble() / 2.0).toInt(),
-                    8f,
-                    8f,
-                    w,
-                    h,
-                    8,
-                    8,
-                    64,
-                    64,
-                )
-
-                if (player.hat) {
-                    Render2D.drawTexture(
-                        context,
-                        player.skin,
-                        (-w.toDouble() / 2.0).toInt(),
-                        (-h.toDouble() / 2.0).toInt(),
-                        40f,
-                        8f,
-                        w,
-                        h,
-                        8,
-                        8,
-                        64,
-                        64,
-                    )
-                }
+                Render2D.drawPlayerHead(-6,-6,12, player.uuid ?: UUID(0, 0))
             } else {
                 val w = 7
                 val h = 10
-                val head = if (v.name == you.name.string) GreenMarker else WhiteMarker
+                val head = if (player.name == you.name.string) GreenMarker else WhiteMarker
 
                 Render2D.drawImage(
                     context,

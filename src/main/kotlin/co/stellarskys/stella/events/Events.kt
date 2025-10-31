@@ -35,7 +35,7 @@ abstract class CancellableEvent : Event() {
 }
 
 class HurtCamEvent(val partialTicks: Float) : CancellableEvent()
-class ScoreboardEvent(val packet: Packet<*>) : Event()
+class SidebarUpdateEvent(val lines: List<String>) : Event()
 class TablistEvent(val packet: S38PacketPlayerListItem) : Event()
 
 class ItemTooltipEvent(val lines: MutableList<String>,val itemStack: ItemStack) : CancellableEvent()
@@ -130,6 +130,7 @@ abstract class WorldEvent {
 abstract class GameEvent {
     class Load() : Event()
     class Unload() : Event()
+    class Disconnect() : Event()
     
     // Added 1.21 parity helpers
     class ActionBar(val event: ClientChatReceivedEvent) : CancellableEvent() {

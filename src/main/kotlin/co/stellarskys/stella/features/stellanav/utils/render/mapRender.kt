@@ -6,7 +6,6 @@ import co.stellarskys.stella.features.stellanav.utils.prevewMap
 import co.stellarskys.stella.utils.CompatHelpers.UDrawContext
 import co.stellarskys.stella.utils.render.Render2D
 import co.stellarskys.stella.utils.render.Render2D.width
-import co.stellarskys.stella.utils.skyblock.NEUApi
 import co.stellarskys.stella.utils.skyblock.dungeons.Dungeon
 
 object mapRender {
@@ -20,7 +19,7 @@ object mapRender {
         matrix.scale(scale, scale, 1f)
         matrix.translate(5f,5f,0f)
 
-        if(!Dungeon.inBoss() && !Dungeon.complete) {
+        if(!Dungeon.inBoss && !Dungeon.complete) {
             renderMapBackground(context)
             clear.renderMap(context)
             if (mapInfoUnder) renderInfoUnder(context, false)

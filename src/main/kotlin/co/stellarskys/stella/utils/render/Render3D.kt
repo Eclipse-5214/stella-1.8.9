@@ -83,7 +83,6 @@ object Render3D {
         GlStateManager.enableTexture2D()
         GlStateManager.disableBlend()
         GlStateManager.popMatrix()
-        GlStateManager.popMatrix()
     }
 
     fun renderBlock(blockPosition: BlockPos, partialTicks: Float, fill: Boolean, color: Color, lineWidth: Float, phase: Boolean = true, fillColor: Color = color) {

@@ -1,9 +1,11 @@
 package co.stellarskys.stella.utils.skyblock
 
+import co.stellarskys.stella.Stella
 import co.stellarskys.stella.events.AreaEvent
 import co.stellarskys.stella.events.EventBus
 import co.stellarskys.stella.events.PacketEvent
 import co.stellarskys.stella.utils.clearCodes
+import co.stellarskys.stella.events.GameEvent
 import co.stellarskys.stella.utils.removeEmotes
 import net.minecraft.network.play.server.S38PacketPlayerListItem
 import net.minecraft.network.play.server.S3EPacketTeams
@@ -23,9 +25,11 @@ object LocationUtils {
         private set
     var subarea: String? = null
         private set
+    var inSkyblock = false
+        private set
 
     init {
-        EventBus.register<PacketEvent.Received> ({ event ->
+        EventBus.register<PacketEvent.Received> { event ->
             when (val packet = event.packet) {
                 is S38PacketPlayerListItem -> {
                     if (packet.action != S38PacketPlayerListItem.Action.UPDATE_DISPLAY_NAME && packet.action != S38PacketPlayerListItem.Action.ADD_PLAYER) return@register
@@ -50,32 +54,50 @@ object LocationUtils {
                     val line = teamPrefix + teamSuffix
                     if (!subAreaRegex.matches(line.clearCodes())) return@register
                     if (line.endsWith("cth") || line.endsWith("ch")) return@register
-                    val cleanSubarea = line.clearCodes().replace(uselessRegex, "").trim().lowercase()
+                    val cleanLine = line.clearCodes()
+                    val cleanSubarea = cleanLine.replace(uselessRegex, "").trim().lowercase()
                     if (cleanSubarea != subarea) {
                         synchronized(lock) {
                             EventBus.post(AreaEvent.Sub(cleanSubarea))
                             subarea = cleanSubarea
                         }
                     }
-                    if (line.contains("The Catacombs (") && !line.contains("Queue")) {
-                        dungeonFloor = line.clearCodes().substringAfter("(").substringBefore(")")
-                        dungeonFloorNum = dungeonFloor?.lastOrNull()?.digitToIntOrNull() ?: 0
+                    if (cleanLine.contains("The Catacombs (") && !line.contains("Queue")) {
+                        dungeonFloor = cleanLine.substringAfter("(").substringBefore(")")
+                        dungeonFloorNum =
+                            if (dungeonFloor?.contains("M", true) == true) {
+                                dungeonFloor?.lastOrNull()?.digitToIntOrNull()?.plus(7) ?: 0
+                            } else {
+                                dungeonFloor?.lastOrNull()?.digitToIntOrNull() ?: 0
+                            }
                     }
                 }
             }
-        })
+        }
 
-        EventBus.register<AreaEvent.Main> ({
+        EventBus.register<AreaEvent.Main> {
             synchronized(lock) {
                 cachedAreas.clear()
             }
-        })
+        }
 
-        EventBus.register<AreaEvent.Sub> ({
+        EventBus.register<AreaEvent.Sub> {
             synchronized(lock) {
                 cachedSubareas.clear()
             }
-        })
+        }
+
+        EventBus.register<GameEvent.Disconnect> {
+            reset()
+        }
+    }
+
+    private fun reset() {
+        inSkyblock = false
+        dungeonFloor = null
+        dungeonFloorNum = null
+        subarea = null
+        area = null
     }
 
     fun checkArea(areaLower: String?): Boolean {

@@ -1,6 +1,7 @@
 package co.stellarskys.stella.events
 
 import co.stellarskys.stella.utils.CompatHelpers.DrawContext
+import co.stellarskys.stella.utils.ScoreboardUtils
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.network.Packet
 import net.minecraft.network.play.client.C01PacketChatMessage
@@ -17,6 +18,7 @@ import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent
+import net.minecraftforge.fml.common.network.FMLNetworkEvent
 import java.util.concurrent.ConcurrentHashMap
 
 object EventBus {
@@ -158,6 +160,11 @@ object EventBus {
         }
     }
 
+    @SubscribeEvent
+    fun onDisconnect(event: FMLNetworkEvent.ClientDisconnectionFromServerEvent) {
+        post(GameEvent.Disconnect())
+    }
+
     fun onPacketReceived(packet: Packet<*>): Boolean {
         if (post(PacketEvent.Received(packet))) return true
 
@@ -170,7 +177,8 @@ object EventBus {
                 post(ChatEvent.Packet(packet))
             }
             is S3EPacketTeams, is S3CPacketUpdateScore, is S3DPacketDisplayScoreboard -> {
-                post(ScoreboardEvent(packet))
+                val lines = ScoreboardUtils.getSidebarLines(true)
+                post(SidebarUpdateEvent(lines))
             }
             is S38PacketPlayerListItem -> {
                 if (packet.action == S38PacketPlayerListItem.Action.UPDATE_DISPLAY_NAME || packet.action == S38PacketPlayerListItem.Action.ADD_PLAYER) post(TablistEvent(packet))
